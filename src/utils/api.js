@@ -1,8 +1,8 @@
 // Variable para alternar entre Localhost y el Host de Producción de la API
-const USAR_LOCALHOST = true;
+const USAR_LOCALHOST = false;
 
 const URL_LOCALHOST = 'http://192.168.1.245:3000';
-const URL_PRODUCCION = 'http://10.3.0.142:3000'; // Reemplazar con el host de producción real de la API
+const URL_PRODUCCION = 'https://vitaweb.onrender.com'; // Reemplazar con el host de producción real de la API
 
 export const API_BASE_URL = USAR_LOCALHOST ? URL_LOCALHOST : URL_PRODUCCION;
 
@@ -61,6 +61,20 @@ export const registrarNutriologo = async (datos) => {
   return apiFetch('/api/auth/register', {
     method: 'POST',
     body: JSON.stringify(datos)
+  });
+};
+
+export const solicitarRecuperacion = async (email) => {
+  return apiFetch('/api/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify({ email })
+  });
+};
+
+export const restablecerContrasena = async (token, nuevaContrasena) => {
+  return apiFetch('/api/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({ token, nuevaContrasena })
   });
 };
 
@@ -146,6 +160,21 @@ export const cancelarCita = async (id) => {
   });
 };
 
+export const eliminarCita = async (id) => {
+  return apiFetch(`/api/citas/${id}`, {
+    method: 'DELETE'
+  });
+};
+
+// --- Google Calendar ---
+export const getGoogleAuthUrl = async () => {
+  return apiFetch('/api/google/auth');
+};
+
+export const getGoogleStatus = async () => {
+  return apiFetch('/api/google/status');
+};
+
 // --- Correos ---
 export const getCorreosPaciente = async (idPaciente) => {
   return apiFetch(`/api/correos/${idPaciente}`);
@@ -158,6 +187,13 @@ export const enviarCorreo = async (datos) => {
   });
 };
 
+export const actualizarCorreo = async (id, datos) => {
+  return apiFetch(`/api/correos/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(datos)
+  });
+};
+
 // --- Registro / Progreso Médico ---
 export const getProgresoPaciente = async (idPaciente) => {
   return apiFetch(`/api/registros/${idPaciente}`);
@@ -166,6 +202,17 @@ export const getProgresoPaciente = async (idPaciente) => {
 export const agregarProgreso = async (datos) => {
   return apiFetch('/api/registros', {
     method: 'POST',
+    body: JSON.stringify(datos)
+  });
+};
+
+export const getRegistro = async (id) => {
+  return apiFetch(`/api/registros/registro/${id}`);
+};
+
+export const actualizarRegistro = async (id, datos) => {
+  return apiFetch(`/api/registros/${id}`, {
+    method: 'PUT',
     body: JSON.stringify(datos)
   });
 };

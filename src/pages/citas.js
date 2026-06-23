@@ -5,8 +5,10 @@ import {
   actualizarCita,
   cancelarCita,
   completarCita,
+  eliminarCita,
   agregarProgreso,
-  actualizarPaciente
+  actualizarPaciente,
+  getGoogleStatus
 } from '../utils/api.js';
 import { router } from '../utils/router.js';
 import { formatDate, formatDateTime, getEstadoStyle, getEstadoLabel } from '../utils/formatters.js';
@@ -25,6 +27,11 @@ export const CitasPage = async () => {
   return createLayout(content, '/citas');
 };
 
+let googleConectado = false;
+getGoogleStatus()
+  .then(res => { googleConectado = res?.conectado === true; })
+  .catch(() => { googleConectado = false; });
+
 async function renderizarLista(contenedor) {
   contenedor.innerHTML = '<div class="text-center py-16"><p class="text-slate-500 font-medium">Cargando citas...</p></div>';
   const [citas, pacientes] = await Promise.all([
@@ -39,13 +46,26 @@ async function renderizarLista(contenedor) {
           <h1>Citas</h1>
           <p>Administra las consultas y seguimientos de tus pacientes</p>
         </div>
-        <button id="crearCitaBtn" class="btn-primary">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-          Nueva Cita
-        </button>
+        <div class="flex items-center gap-3">
+          <div id="googleSyncBadge" class="hidden">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800/40">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+              Google Calendar
+            </span>
+          </div>
+          <button id="crearCitaBtn" class="btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Nueva Cita
+          </button>
+        </div>
       </div>
 
       <!-- Filter Buttons -->
@@ -160,6 +180,19 @@ async function renderizarLista(contenedor) {
       }
     });
   });
+
+  document.querySelectorAll('.btn-eliminar').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const id = parseInt(btn.dataset.id);
+      if (confirm('¿Eliminar esta cita definitivamente?')) {
+        await eliminarCita(id).catch(e => alert(e.message));
+        await renderizarVista();
+      }
+    });
+  });
+
+  const googleBadge = document.getElementById('googleSyncBadge');
+  if (googleBadge && googleConectado) googleBadge.classList.remove('hidden');
 }
 
 function renderizarFilas(citas, pacientes) {
@@ -197,7 +230,15 @@ function renderizarFilas(citas, pacientes) {
                 </svg>
                 Cancelar
               </button>
-            ` : ''}
+            ` : `
+              <button class="action-btn action-btn-delete btn-eliminar" data-id="${cita.id_cita}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                Eliminar
+              </button>
+            `}
             <button class="action-btn action-btn-view btn-seguimiento" data-id="${cita.id_cita}">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
@@ -241,6 +282,16 @@ function filtrarCitas(estado, citas, pacientes) {
       citaEnEdicion = list.find(c => c.id_cita === id);
       modo = 'seguimiento';
       await renderizarVista();
+    });
+  });
+
+  document.querySelectorAll('.btn-eliminar').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const id = parseInt(btn.dataset.id);
+      if (confirm('¿Eliminar esta cita definitivamente?')) {
+        await eliminarCita(id).catch(e => alert(e.message));
+        await renderizarVista();
+      }
     });
   });
 }
@@ -317,11 +368,13 @@ async function renderizarFormulario(contenedor) {
 
   document.getElementById('formCita').addEventListener('submit', async (e) => {
     e.preventDefault();
+    const selectedPaciente = pacientes.find(p => p.id_paciente === parseInt(document.getElementById('idPaciente').value));
     const datos = {
       id_paciente: parseInt(document.getElementById('idPaciente').value),
       fecha_hora: document.getElementById('fechaHora').value,
       motivo: document.getElementById('motivo').value,
-      estado: document.getElementById('estado').value
+      estado: document.getElementById('estado').value,
+      email_paciente: selectedPaciente?.email || ''
     };
     try {
       if (modo === 'crear') await agregarCita(datos);
