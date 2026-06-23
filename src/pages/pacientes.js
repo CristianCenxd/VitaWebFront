@@ -6,14 +6,22 @@ import {
   getCitas,
   getProgresoPaciente,
   getCorreosPaciente,
-  enviarCorreo as agregarCorreo
+  enviarCorreo as agregarCorreo,
+  getRegistro,
+  actualizarRegistro,
+  agregarProgreso
 } from '../utils/api.js';
 import { router } from '../utils/router.js';
 import { formatDate, formatDateTime, getEstadoStyle, getEstadoLabel } from '../utils/formatters.js';
 import { createLayout } from '../components/layout.js';
+import { Chart, registerables } from 'chart.js';
+
+Chart.register(...registerables);
 
 let modo = 'lista';
 let pacienteEnEdicion = null;
+let progresoEnEdicion = null;
+let chartInstance = null;
 
 export const PacientesPage = async () => {
   const content = `<div id="contenidoPacientes"></div>`;
@@ -28,10 +36,13 @@ export const PacientesPage = async () => {
 async function renderizarVista() {
   const contenedor = document.getElementById('contenidoPacientes');
   if (!contenedor) return;
+  if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
   if (modo === 'lista') await renderizarLista(contenedor);
   else if (modo === 'crear' || modo === 'editar') renderizarFormulario(contenedor);
   else if (modo === 'detalle') await renderizarDetalle(contenedor);
   else if (modo === 'enviar-correo') renderizarEnviarCorreo(contenedor);
+  else if (modo === 'editar-progreso') renderizarEditarProgreso(contenedor);
+  else if (modo === 'nuevo-progreso') renderizarNuevoProgreso(contenedor);
 }
 
 async function renderizarLista(contenedor) {
@@ -430,22 +441,43 @@ async function renderizarDetalle(contenedor) {
             </svg>
             Progreso Médico (${progreso.length})
           </h2>
+          <button id="nuevoProgresoBtn" class="btn-primary text-sm !py-2 !px-3">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Nuevo Seguimiento
+          </button>
         </div>
         <div class="detail-section-body">
+          ${progreso.length > 1 ? `
+            <div class="mb-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 p-4">
+              <canvas id="progresoChart" height="250"></canvas>
+            </div>
+          ` : ''}
           ${progreso.length === 0 ? '<p class="text-slate-500 text-sm py-4 text-center">Sin seguimiento registrado</p>' : `
             <div class="space-y-3">
               ${progreso.map(p => `
                 <div class="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                  <div class="flex items-center gap-2 mb-3">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                      <line x1="16" y1="2" x2="16" y2="6"></line>
-                      <line x1="8" y1="2" x2="8" y2="6"></line>
-                      <line x1="3" y1="10" x2="21" y2="10"></line>
-                    </svg>
-                    <span class="text-sm font-semibold text-slate-700">${formatDate(p.fecha_revision)}</span>
+                  <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                      </svg>
+                      <span class="text-sm font-semibold text-slate-700">${formatDate(p.fecha_revision)}</span>
+                    </div>
+                    <button class="action-btn action-btn-edit btn-editar-progreso" data-id="${p.id_registro || p.id}">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                      </svg>
+                      Editar
+                    </button>
                   </div>
-                  <div class="grid grid-cols-3 gap-4">
+                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div class="bg-white dark:bg-slate-800 rounded-lg p-3 text-center">
                       <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Peso</p>
                       <p class="text-lg font-bold text-slate-900 dark:text-white">${p.peso_kg || p.peso || p.weight || '—'} <span class="text-xs font-normal text-slate-500">kg</span></p>
@@ -453,6 +485,10 @@ async function renderizarDetalle(contenedor) {
                     <div class="bg-white dark:bg-slate-800 rounded-lg p-3 text-center">
                       <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Grasa</p>
                       <p class="text-lg font-bold text-slate-900 dark:text-white">${p.porcentaje_grasa || p.grasa || '—'} <span class="text-xs font-normal text-slate-500">%</span></p>
+                    </div>
+                    <div class="bg-white dark:bg-slate-800 rounded-lg p-3 text-center">
+                      <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">M. Muscular</p>
+                      <p class="text-lg font-bold text-slate-900 dark:text-white">${p.masa_muscular || '—'} <span class="text-xs font-normal text-slate-500">kg</span></p>
                     </div>
                     <div class="bg-white dark:bg-slate-800 rounded-lg p-3 text-center">
                       <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">IMC</p>
@@ -473,6 +509,7 @@ async function renderizarDetalle(contenedor) {
                       </p>
                     </div>
                   </div>
+                  ${p.grasa_visceral ? `<div class="mt-2 flex gap-4 text-xs text-slate-500 dark:text-slate-400"><span>Grasa Visceral: <strong>${p.grasa_visceral}</strong></span></div>` : ''}
                   ${(p.observaciones || p.notas) ? `<p class="text-sm text-slate-600 dark:text-slate-300 mt-3 pt-3 border-t border-slate-200 dark:border-slate-800">${p.observaciones || p.notas}</p>` : ''}
                 </div>
               `).join('')}
@@ -521,6 +558,105 @@ async function renderizarDetalle(contenedor) {
   document.getElementById('volverBtn').onclick = async () => { modo = 'lista'; await renderizarVista(); };
   document.getElementById('editarBtn').onclick = async () => { modo = 'editar'; await renderizarVista(); };
   document.getElementById('enviarBtn').onclick = async () => { modo = 'enviar-correo'; await renderizarVista(); };
+  const nuevoProgresoBtn = document.getElementById('nuevoProgresoBtn');
+  if (nuevoProgresoBtn) nuevoProgresoBtn.onclick = async () => { modo = 'nuevo-progreso'; await renderizarVista(); };
+
+  if (progreso.length > 1) {
+    setTimeout(() => {
+      const canvas = document.getElementById('progresoChart');
+      if (!canvas) return;
+      if (chartInstance) chartInstance.destroy();
+
+      const sorted = [...progreso].sort((a, b) => new Date(a.fecha_revision) - new Date(b.fecha_revision));
+      const labels = sorted.map(p => formatDate(p.fecha_revision));
+      const pesos = sorted.map(p => parseFloat(p.peso_kg || p.peso || p.weight) || null);
+      const grasas = sorted.map(p => parseFloat(p.porcentaje_grasa || p.grasa) || null);
+      const masas = sorted.map(p => parseFloat(p.masa_muscular) || null);
+      const tieneMasaMuscular = masas.some(v => v !== null);
+
+      const isDark = document.documentElement.classList.contains('dark');
+      const textColor = isDark ? '#94a3b8' : '#64748b';
+      const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)';
+
+      const datasets = [
+        {
+          label: 'Peso (kg)',
+          data: pesos,
+          borderColor: '#3b82f6',
+          backgroundColor: 'rgba(59,130,246,0.1)',
+          tension: 0.3,
+          fill: true,
+          pointRadius: 4,
+          pointHoverRadius: 6
+        },
+        {
+          label: 'Grasa Corporal (%)',
+          data: grasas,
+          borderColor: '#f59e0b',
+          backgroundColor: 'rgba(245,158,11,0.1)',
+          tension: 0.3,
+          fill: true,
+          pointRadius: 4,
+          pointHoverRadius: 6
+        }
+      ];
+      if (tieneMasaMuscular) {
+        datasets.push({
+          label: 'Masa Muscular (kg)',
+          data: masas,
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16,185,129,0.1)',
+          tension: 0.3,
+          fill: true,
+          pointRadius: 4,
+          pointHoverRadius: 6
+        });
+      }
+
+      chartInstance = new Chart(canvas, {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              labels: { color: textColor, font: { size: 12 }, boxWidth: 14, padding: 16 }
+            },
+            tooltip: {
+              backgroundColor: isDark ? '#1e293b' : 'white',
+              titleColor: isDark ? '#f8fafc' : '#0f172a',
+              bodyColor: textColor,
+              borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+              borderWidth: 1
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: textColor, font: { size: 11 } },
+              grid: { color: gridColor }
+            },
+            y: {
+              beginAtZero: false,
+              ticks: { color: textColor, font: { size: 11 } },
+              grid: { color: gridColor }
+            }
+          }
+        }
+      });
+    }, 50);
+  }
+
+  document.querySelectorAll('.btn-editar-progreso').forEach(btn => {
+    btn.onclick = async (e) => {
+      const id = parseInt(e.currentTarget.dataset.id);
+      progresoEnEdicion = progreso.find(p => (p.id_registro || p.id) === id);
+      if (progresoEnEdicion) {
+        modo = 'editar-progreso';
+        await renderizarVista();
+      }
+    };
+  });
 }
 
 function renderizarEnviarCorreo(contenedor) {
@@ -587,4 +723,224 @@ function renderizarEnviarCorreo(contenedor) {
     }
   };
   document.getElementById('cancelarBtn').onclick = async () => { modo = 'detalle'; await renderizarVista(); };
+}
+
+function renderizarEditarProgreso(contenedor) {
+  const p = progresoEnEdicion;
+  if (!p) { modo = 'detalle'; renderizarVista(); return; }
+
+  contenedor.innerHTML = `
+    <div class="animate-slide-in max-w-2xl">
+      <div class="detail-section">
+        <div class="detail-section-header">
+          <h2>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+            </svg>
+            Editar Seguimiento - ${formatDate(p.fecha_revision)}
+          </h2>
+        </div>
+        <div class="detail-section-body">
+          <form id="formEditarProgreso" class="space-y-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div class="form-group">
+                <label class="form-label" for="editPeso">Peso (kg) *</label>
+                <input type="number" id="editPeso" step="0.1" value="${p.peso_kg || p.peso || ''}" required class="input-field" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="editImc">IMC</label>
+                <input type="number" id="editImc" step="0.1" value="${p.imc || ''}" class="input-field" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="editGrasa">Grasa Corporal (%)</label>
+                <input type="number" id="editGrasa" step="0.1" value="${p.porcentaje_grasa || p.grasa || ''}" class="input-field" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="editMasaMuscular">Masa Muscular (kg)</label>
+                <input type="number" id="editMasaMuscular" step="0.1" value="${p.masa_muscular || ''}" class="input-field" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="editGrasaVisceral">Grasa Visceral</label>
+                <input type="number" id="editGrasaVisceral" step="0.1" value="${p.grasa_visceral || ''}" class="input-field" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="editObservaciones">Observaciones</label>
+              <textarea id="editObservaciones" rows="4" class="textarea-field">${p.observaciones || p.notas || ''}</textarea>
+            </div>
+            <div class="flex gap-3 pt-2">
+              <button type="submit" class="btn-success">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                  <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                  <polyline points="7 3 7 8 15 8"></polyline>
+                </svg>
+                Guardar Cambios
+              </button>
+              <button type="button" id="cancelarEditProgreso" class="btn-secondary">Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('formEditarProgreso').onsubmit = async (e) => {
+    e.preventDefault();
+    const peso = parseFloat(document.getElementById('editPeso').value);
+    const datos = {
+      peso_kg: peso,
+      porcentaje_grasa: parseFloat(document.getElementById('editGrasa').value) || null,
+      masa_muscular: parseFloat(document.getElementById('editMasaMuscular').value) || null,
+      grasa_visceral: parseFloat(document.getElementById('editGrasaVisceral').value) || null,
+      imc: parseFloat(document.getElementById('editImc').value) || null,
+      observaciones: document.getElementById('editObservaciones').value
+    };
+    try {
+      await actualizarRegistro(p.id_registro || p.id, datos);
+      modo = 'detalle';
+      await renderizarVista();
+    } catch (err) {
+      alert('Error al guardar: ' + err.message);
+    }
+  };
+
+  document.getElementById('cancelarEditProgreso').onclick = async () => {
+    modo = 'detalle';
+    await renderizarVista();
+  };
+}
+
+function renderizarNuevoProgreso(contenedor) {
+  const paciente = pacienteEnEdicion;
+  const estatura = paciente?.estatura_cm || paciente?.estatura || 0;
+  const today = new Date().toISOString().split('T')[0];
+
+  contenedor.innerHTML = `
+    <div class="animate-slide-in max-w-2xl">
+      <div class="detail-section">
+        <div class="detail-section-header">
+          <h2>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+            </svg>
+            Nuevo Seguimiento
+          </h2>
+        </div>
+        <div class="detail-section-body">
+          <div class="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-950/20 rounded-xl border border-green-100 dark:border-green-800/30 mb-6">
+            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-white font-bold text-sm">
+              ${(paciente.nombreCompleto || '?').charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <p class="font-semibold text-slate-900 dark:text-white text-sm">${paciente.nombreCompleto}</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Registrar nuevo seguimiento antropométrico</p>
+            </div>
+          </div>
+          ${!estatura || estatura <= 0 ? `
+            <div class="p-3 mb-4 text-sm text-yellow-800 dark:text-yellow-300 bg-yellow-50 dark:bg-yellow-950/20 rounded-xl border border-yellow-200 dark:border-yellow-900/30 flex items-center gap-2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <span>El paciente no tiene estatura registrada. Edita su perfil para que el IMC se calcule automáticamente.</span>
+            </div>
+          ` : ''}
+          <form id="formNuevoProgreso" class="space-y-5">
+            <div class="form-group">
+              <label class="form-label" for="nuevaFecha">Fecha de Revisión *</label>
+              <input type="date" id="nuevaFecha" value="${today}" required class="input-field" />
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div class="form-group">
+                <label class="form-label" for="nuevoPeso">Peso (kg) *</label>
+                <input type="number" id="nuevoPeso" step="0.1" required placeholder="75.5" class="input-field" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="nuevoImc">IMC (Autocalculado)</label>
+                <input type="number" id="nuevoImc" step="0.1" readonly class="input-field bg-slate-100 dark:bg-slate-800 cursor-not-allowed" placeholder="Autocalculado" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="nuevaGrasa">Grasa Corporal (%)</label>
+                <input type="number" id="nuevaGrasa" step="0.1" placeholder="25.5" class="input-field" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="nuevaMasaMuscular">Masa Muscular (kg)</label>
+                <input type="number" id="nuevaMasaMuscular" step="0.1" placeholder="35.2" class="input-field" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="nuevaGrasaVisceral">Grasa Visceral</label>
+                <input type="number" id="nuevaGrasaVisceral" step="0.1" placeholder="8.0" class="input-field" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="nuevasObservaciones">Observaciones</label>
+              <textarea id="nuevasObservaciones" rows="4" placeholder="Evolución del paciente, observaciones..." class="textarea-field"></textarea>
+            </div>
+            <div class="flex gap-3 pt-2">
+              <button type="submit" class="btn-success">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                  <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                  <polyline points="7 3 7 8 15 8"></polyline>
+                </svg>
+                Guardar Seguimiento
+              </button>
+              <button type="button" id="cancelarNuevoProgreso" class="btn-secondary">Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  `;
+
+  setTimeout(() => {
+    const pesoInput = document.getElementById('nuevoPeso');
+    const imcInput = document.getElementById('nuevoImc');
+
+    if (pesoInput && imcInput) {
+      const calcImc = () => {
+        const peso = parseFloat(pesoInput.value);
+        if (peso > 0 && estatura > 0) {
+          const estaturaM = estatura > 3 ? estatura / 100 : estatura;
+          imcInput.value = (peso / (estaturaM * estaturaM)).toFixed(1);
+        } else {
+          imcInput.value = '';
+        }
+      };
+      pesoInput.addEventListener('input', calcImc);
+      pesoInput.addEventListener('change', calcImc);
+    }
+  }, 0);
+
+  document.getElementById('formNuevoProgreso').onsubmit = async (e) => {
+    e.preventDefault();
+    const peso = parseFloat(document.getElementById('nuevoPeso').value);
+    const estaturaM = estatura > 0 ? (estatura > 3 ? estatura / 100 : estatura) : 0;
+    const imcCalc = estaturaM > 0 && peso > 0 ? parseFloat((peso / (estaturaM * estaturaM)).toFixed(1)) : null;
+
+    const datos = {
+      id_paciente: paciente.id_paciente,
+      fecha_revision: document.getElementById('nuevaFecha').value,
+      peso_kg: peso,
+      porcentaje_grasa: parseFloat(document.getElementById('nuevaGrasa').value) || null,
+      masa_muscular: parseFloat(document.getElementById('nuevaMasaMuscular').value) || null,
+      grasa_visceral: parseFloat(document.getElementById('nuevaGrasaVisceral').value) || null,
+      imc: imcCalc,
+      observaciones: document.getElementById('nuevasObservaciones').value
+    };
+    try {
+      await agregarProgreso(datos);
+      modo = 'detalle';
+      await renderizarVista();
+    } catch (err) {
+      alert('Error al guardar seguimiento: ' + err.message);
+    }
+  };
+
+  document.getElementById('cancelarNuevoProgreso').onclick = async () => {
+    modo = 'detalle';
+    await renderizarVista();
+  };
 }
