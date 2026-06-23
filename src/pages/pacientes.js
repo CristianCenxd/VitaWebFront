@@ -80,7 +80,7 @@ async function renderizarLista(contenedor) {
               <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-500/20">
                 ${p.nombreCompleto.charAt(0).toUpperCase()}
               </div>
-              <span class="badge-status ${getEstadoStyle(p.estado)} text-xs">${getEstadoLabel(p.estado)}</span>
+              <span class="badge-status ${getEstadoStyle(p.estado ?? (p.activo ? 'activo' : 'inactivo'))} text-xs">${getEstadoLabel(p.estado ?? (p.activo ? 'activo' : 'inactivo'))}</span>
             </div>
             <h3>${p.nombreCompleto}</h3>
             <div class="space-y-1.5 text-sm text-slate-500 mb-4">
@@ -260,6 +260,7 @@ function renderizarFormulario(contenedor) {
       fecha_nacimiento: document.getElementById('fechaNacimiento').value,
       antecedentes: document.getElementById('antecedentes').value,
       estado: document.getElementById('estado').value,
+      activo: document.getElementById('estado').value === 'activo',
       estatura_cm: parseFloat(document.getElementById('estaturaCm').value),
       sexo: document.getElementById('sexo').value
     };
@@ -342,7 +343,7 @@ async function renderizarDetalle(contenedor) {
             </div>
             <div class="info-item">
               <label>Estado</label>
-              <p><span class="badge-status ${getEstadoStyle(paciente.estado)}">${getEstadoLabel(paciente.estado)}</span></p>
+              <p><span class="badge-status ${getEstadoStyle(paciente.estado ?? (paciente.activo ? 'activo' : 'inactivo'))}">${getEstadoLabel(paciente.estado ?? (paciente.activo ? 'activo' : 'inactivo'))}</span></p>
             </div>
             <div class="info-item">
               <label>Fecha de Registro</label>

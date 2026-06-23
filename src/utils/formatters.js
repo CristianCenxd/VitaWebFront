@@ -13,6 +13,7 @@ export const formatDateTime = (dateString) => {
 };
 
 export const getEstadoStyle = (estado) => {
+  if (estado == null || estado === undefined) return 'bg-gray-100 text-gray-800';
   const estilos = {
     'pendiente': 'bg-yellow-100 text-yellow-800',
     'completada': 'bg-green-100 text-green-800',
@@ -24,6 +25,7 @@ export const getEstadoStyle = (estado) => {
 };
 
 export const getEstadoLabel = (estado) => {
+  if (estado == null || estado === undefined) return 'Inactivo';
   const labels = {
     'pendiente': 'Pendiente',
     'completada': 'Completada',

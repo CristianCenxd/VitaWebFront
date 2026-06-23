@@ -143,7 +143,7 @@ export const DashboardPage = async () => {
               const nombre = paciente.nombreCompleto || paciente.nombre || 'Sin nombre';
               const inicial = nombre.charAt(0).toUpperCase();
               const email = paciente.email || 'Sin correo registrado';
-              const esActivo = paciente.estado?.toLowerCase() === 'activo';
+              const esActivo = (paciente.estado?.toLowerCase() === 'activo') || paciente.activo === true;
 
               return `
                 <div class="list-item">
@@ -156,7 +156,7 @@ export const DashboardPage = async () => {
                       <p class="text-xs text-slate-500">${email}</p>
                     </div>
                   </div>
-                  <span class="badge-status ${esActivo ? 'badge-active' : 'badge-inactive'} text-xs">${getEstadoLabel(paciente.estado)}</span>
+                  <span class="badge-status ${esActivo ? 'badge-active' : 'badge-inactive'} text-xs">${getEstadoLabel(paciente.estado ?? (paciente.activo ? 'activo' : 'inactivo'))}</span>
                 </div>
               `;
             }).join('')}
