@@ -337,9 +337,10 @@ async function renderizarFormulario(contenedor) {
               <div class="form-group">
                 <label class="form-label" for="estado">Estado</label>
                 <select id="estado" class="input-field">
-                  <option value="pendiente" ${datosIniciales.estado === 'pendiente' ? 'selected' : ''}>Pendiente</option>
-                  <option value="completada" ${datosIniciales.estado === 'completada' ? 'selected' : ''}>Completada</option>
-                  <option value="cancelada" ${datosIniciales.estado === 'cancelada' ? 'selected' : ''}>Cancelada</option>
+                  <option value="Pendiente" ${datosIniciales.estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
+                  <option value="Confirmada" ${datosIniciales.estado === 'Confirmada' ? 'selected' : ''}>Confirmada</option>
+                  <option value="Completada" ${datosIniciales.estado === 'Completada' ? 'selected' : ''}>Completada</option>
+                  <option value="Cancelada" ${datosIniciales.estado === 'Cancelada' ? 'selected' : ''}>Cancelada</option>
                 </select>
               </div>
             </div>
@@ -371,7 +372,9 @@ async function renderizarFormulario(contenedor) {
     const selectedPaciente = pacientes.find(p => p.id_paciente === parseInt(document.getElementById('idPaciente').value));
     const datos = {
       id_paciente: parseInt(document.getElementById('idPaciente').value),
-      fecha_hora: document.getElementById('fechaHora').value,
+      fecha_hora: document.getElementById('fechaHora').value
+        ? document.getElementById('fechaHora').value + ':00'
+        : '',
       motivo: document.getElementById('motivo').value,
       estado: document.getElementById('estado').value,
       email_paciente: selectedPaciente?.email || ''

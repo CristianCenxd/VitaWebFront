@@ -14,6 +14,7 @@ export const formatDateTime = (dateString) => {
 
 export const getEstadoStyle = (estado) => {
   if (estado == null || estado === undefined) return 'bg-gray-100 text-gray-800';
+  const e = String(estado).toLowerCase();
   const estilos = {
     'pendiente': 'bg-yellow-100 text-yellow-800',
     'completada': 'bg-green-100 text-green-800',
@@ -21,11 +22,12 @@ export const getEstadoStyle = (estado) => {
     'activo': 'bg-blue-100 text-blue-800',
     'inactivo': 'bg-gray-100 text-gray-800'
   };
-  return estilos[estado] || 'bg-gray-100 text-gray-800';
+  return estilos[e] || 'bg-gray-100 text-gray-800';
 };
 
 export const getEstadoLabel = (estado) => {
   if (estado == null || estado === undefined) return 'Inactivo';
+  const e = String(estado).toLowerCase();
   const labels = {
     'pendiente': 'Pendiente',
     'completada': 'Completada',
@@ -33,5 +35,5 @@ export const getEstadoLabel = (estado) => {
     'activo': 'Activo',
     'inactivo': 'Inactivo'
   };
-  return labels[estado] || estado;
+  return labels[e] || estado;
 };

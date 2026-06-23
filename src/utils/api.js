@@ -141,7 +141,7 @@ export const completarCita = async (id) => {
       id_paciente: data.id_paciente,
       fecha_hora: data.fecha_hora,
       motivo: data.motivo,
-      estado: 'completada'
+      estado: 'Completada'
     })
   });
 };
@@ -155,7 +155,7 @@ export const cancelarCita = async (id) => {
       id_paciente: data.id_paciente,
       fecha_hora: data.fecha_hora,
       motivo: data.motivo,
-      estado: 'cancelada'
+      estado: 'Cancelada'
     })
   });
 };
