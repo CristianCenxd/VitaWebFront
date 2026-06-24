@@ -4,7 +4,7 @@ const USAR_LOCALHOST = false; // Cambiar a true para usar localhost, false para 
 const URL_LOCALHOST = 'http://192.168.1.71:3000';
 const URL_PRODUCCION = 'https://vitaweb.onrender.com'; // Reemplazar con el host de producción real de la API
 
-export const API_BASE_URL = USAR_LOCALHOST ? URL_LOCALHOST : URL_PRODUCCION;
+export const API_BASE_URL = USAR_LOCALHOST ? URL_LOCALHOST : (import.meta.env.DEV ? '' : URL_PRODUCCION);
 
 // Helper para obtener las cabeceras con el Token si existe
 const getHeaders = () => {

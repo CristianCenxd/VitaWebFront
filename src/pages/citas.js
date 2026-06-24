@@ -8,7 +8,8 @@ import {
   eliminarCita,
   agregarProgreso,
   actualizarPaciente,
-  getGoogleStatus
+  getGoogleStatus,
+  getProgresoPaciente
 } from '../utils/api.js';
 import { router } from '../utils/router.js';
 import { formatDate, formatDateTime, getEstadoStyle, getEstadoLabel } from '../utils/formatters.js';
@@ -333,7 +334,14 @@ async function renderizarFormulario(contenedor) {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div class="form-group">
                 <label class="form-label" for="fechaHora">Fecha y Hora *</label>
-                <input type="datetime-local" id="fechaHora" value="${datosIniciales.fecha_hora ? datosIniciales.fecha_hora.slice(0, 16) : ''}" required class="input-field" />
+                <input type="datetime-local" id="fechaHora" value="${datosIniciales.fecha_hora ? (() => {
+                  const date = new Date(datosIniciales.fecha_hora);
+                  const tzOffset = date.getTimezoneOffset() * 60000;
+                  return new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
+                })() : ''}" min="${modo === 'crear' ? (() => {
+                  const tzOffset = (new Date()).getTimezoneOffset() * 60000;
+                  return (new Date(Date.now() - tzOffset)).toISOString().slice(0, 16);
+                })() : ''}" required class="input-field" />
               </div>
               <div class="form-group">
                 <label class="form-label" for="estado">Estado</label>
@@ -376,7 +384,18 @@ async function renderizarFormulario(contenedor) {
 
     const valido = validarFormulario([
       { campo: 'idPaciente', nombre: 'Paciente', valor: idPaciente, validacion: (v) => !v ? 'Selecciona un paciente' : null },
-      { campo: 'fechaHora', nombre: 'Fecha y hora', valor: fechaHora, validacion: (v) => !v ? 'La fecha y hora son obligatorias' : null },
+      { campo: 'fechaHora', nombre: 'Fecha y hora', valor: fechaHora, validacion: (v) => {
+        if (!v) return 'La fecha y hora son obligatorias';
+        const fechaOriginal = datosIniciales.fecha_hora ? new Date(datosIniciales.fecha_hora).getTime() : null;
+        const fechaSeleccionada = new Date(v).getTime();
+        if (modo === 'crear' || (fechaOriginal && fechaSeleccionada !== fechaOriginal)) {
+          const ahora = new Date().getTime();
+          if (fechaSeleccionada <= ahora) {
+            return 'La fecha y hora de la cita deben ser en el futuro (posteriores al momento actual)';
+          }
+        }
+        return null;
+      }},
       { campo: 'motivo', nombre: 'Motivo', valor: motivo, validacion: (v) => !v?.trim() ? 'El motivo es obligatorio' : null }
     ]);
     if (!valido) return;
@@ -384,7 +403,7 @@ async function renderizarFormulario(contenedor) {
     const selectedPaciente = pacientes.find(p => p.id_paciente === parseInt(idPaciente));
     const datos = {
       id_paciente: parseInt(idPaciente),
-      fecha_hora: fechaHora + ':00',
+      fecha_hora: new Date(fechaHora).toISOString(),
       motivo,
       estado: document.getElementById('estado').value,
       email_paciente: selectedPaciente?.email || ''
@@ -406,9 +425,15 @@ async function renderizarFormulario(contenedor) {
 }
 
 async function renderizarSeguimiento(contenedor) {
-  const pacientes = await getPacientes().catch(() => []);
+  const [pacientes, progresoList] = await Promise.all([
+    getPacientes().catch(() => []),
+    getProgresoPaciente(citaEnEdicion.id_paciente).catch(() => [])
+  ]);
   const paciente = pacientes.find(p => p.id_paciente === citaEnEdicion.id_paciente);
   const estaturaPaciente = paciente?.estatura_cm || paciente?.estatura || paciente?.height;
+  const ultimoProgreso = progresoList.length > 0 
+    ? [...progresoList].sort((a, b) => new Date(b.fecha_revision) - new Date(a.fecha_revision))[0] 
+    : null;
 
   contenedor.innerHTML = `
     <div class="animate-slide-in max-w-2xl">
@@ -444,22 +469,26 @@ async function renderizarSeguimiento(contenedor) {
           ` : ''}
 
           <form id="formSeguimiento" class="space-y-5">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-5">
               <div class="form-group">
                 <label class="form-label" for="estatura">Estatura (cm) *</label>
                 <input type="number" id="estatura" value="${estaturaPaciente || ''}" required placeholder="Ej: 170" class="input-field" />
               </div>
               <div class="form-group">
                 <label class="form-label" for="peso">Peso (kg) *</label>
-                <input type="number" id="peso" step="0.1" required placeholder="75.5" class="input-field" />
+                <input type="number" id="peso" step="0.1" value="${ultimoProgreso?.peso_kg || ultimoProgreso?.peso || ''}" required placeholder="75.5" class="input-field" />
               </div>
               <div class="form-group">
                 <label class="form-label" for="porcentajeGrasa">Grasa Corporal (%)</label>
-                <input type="number" id="porcentajeGrasa" step="0.1" placeholder="25.5" class="input-field" />
+                <input type="number" id="porcentajeGrasa" step="0.1" value="${ultimoProgreso?.porcentaje_grasa || ultimoProgreso?.grasa || ''}" placeholder="25.5" class="input-field" />
               </div>
               <div class="form-group">
                 <label class="form-label" for="imc">IMC (Autocalculado)</label>
-                <input type="number" id="imc" step="0.1" placeholder="Autocalculado" readonly class="input-field bg-slate-100 dark:bg-slate-800 cursor-not-allowed" />
+                <input type="number" id="imc" step="0.1" value="${ultimoProgreso?.imc || ''}" placeholder="Autocalculado" readonly class="input-field bg-slate-100 dark:bg-slate-800 cursor-not-allowed" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="masaMuscular">Masa Muscular (kg) (Autocalculada)</label>
+                <input type="number" id="masaMuscular" step="0.1" value="${ultimoProgreso?.masa_muscular || ''}" placeholder="Autocalculado" readonly class="input-field bg-slate-100 dark:bg-slate-800 cursor-not-allowed" />
               </div>
             </div>
             <div class="form-group">
@@ -486,7 +515,9 @@ async function renderizarSeguimiento(contenedor) {
   setTimeout(() => {
     const pesoInput = document.getElementById('peso');
     const estaturaInput = document.getElementById('estatura');
+    const grasaInput = document.getElementById('porcentajeGrasa');
     const imcInput = document.getElementById('imc');
+    const masaMuscularInput = document.getElementById('masaMuscular');
     
     if (pesoInput && estaturaInput && imcInput) {
       const calculateIMC = () => {
@@ -501,14 +532,28 @@ async function renderizarSeguimiento(contenedor) {
           imcInput.value = '';
         }
       };
+      const calculateMasaMuscular = () => {
+        const peso = parseFloat(pesoInput.value);
+        const grasa = parseFloat(grasaInput?.value);
+        if (peso > 0 && grasa >= 0) {
+          masaMuscularInput.value = (peso * (1 - (grasa / 100))).toFixed(1);
+        } else {
+          masaMuscularInput.value = '';
+        }
+      };
       
-      pesoInput.addEventListener('input', calculateIMC);
-      pesoInput.addEventListener('change', calculateIMC);
+      pesoInput.addEventListener('input', () => { calculateIMC(); calculateMasaMuscular(); });
+      pesoInput.addEventListener('change', () => { calculateIMC(); calculateMasaMuscular(); });
       estaturaInput.addEventListener('input', calculateIMC);
       estaturaInput.addEventListener('change', calculateIMC);
+      if (grasaInput) {
+        grasaInput.addEventListener('input', calculateMasaMuscular);
+        grasaInput.addEventListener('change', calculateMasaMuscular);
+      }
       
       // Calcular de inmediato si ya hay valores
       calculateIMC();
+      calculateMasaMuscular();
     }
   }, 0);
 
@@ -563,6 +608,7 @@ async function renderizarSeguimiento(contenedor) {
       id_cita: citaEnEdicion.id_cita,
       peso_kg: peso,
       porcentaje_grasa: parseFloat(document.getElementById('porcentajeGrasa').value) || null,
+      masa_muscular: parseFloat(document.getElementById('masaMuscular').value) || null,
       imc: imcCalculated,
       observaciones: document.getElementById('notas').value
     };

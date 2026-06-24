@@ -43,7 +43,7 @@ async function renderizarVista() {
   else if (modo === 'detalle') await renderizarDetalle(contenedor);
   else if (modo === 'enviar-correo') renderizarEnviarCorreo(contenedor);
   else if (modo === 'editar-progreso') renderizarEditarProgreso(contenedor);
-  else if (modo === 'nuevo-progreso') renderizarNuevoProgreso(contenedor);
+  else if (modo === 'nuevo-progreso') await renderizarNuevoProgreso(contenedor);
 }
 
 async function renderizarLista(contenedor) {
@@ -84,19 +84,19 @@ async function renderizarLista(contenedor) {
               <span class="badge-status ${getEstadoStyle(p.estado ?? (p.activo ? 'activo' : 'inactivo'))} text-xs">${getEstadoLabel(p.estado ?? (p.activo ? 'activo' : 'inactivo'))}</span>
             </div>
             <h3>${p.nombreCompleto}</h3>
-            <div class="space-y-1.5 text-sm text-slate-500 mb-4">
-              <div class="flex items-center gap-2">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <div class="space-y-1.5 text-sm text-slate-500 mb-4 min-w-0">
+              <div class="flex items-center gap-2 min-w-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0">
                   <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
                   <polyline points="22,6 12,13 2,6"></polyline>
                 </svg>
-                <span>${p.email}</span>
+                <span class="truncate" title="${p.email}">${p.email}</span>
               </div>
-              <div class="flex items-center gap-2">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <div class="flex items-center gap-2 min-w-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0">
                   <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
                 </svg>
-                <span>${p.telefono}</span>
+                <span class="truncate">${p.telefono}</span>
               </div>
               <div class="flex items-center gap-2">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -191,7 +191,10 @@ function renderizarFormulario(contenedor) {
               </div>
               <div class="form-group">
                 <label class="form-label" for="fechaNacimiento">Fecha de Nacimiento *</label>
-                <input type="date" id="fechaNacimiento" value="${datosIniciales.fecha_nacimiento ? datosIniciales.fecha_nacimiento.split('T')[0] : ''}" required class="input-field" />
+                <input type="date" id="fechaNacimiento" value="${datosIniciales.fecha_nacimiento ? datosIniciales.fecha_nacimiento.split('T')[0] : ''}" max="${(() => {
+                  const tzOffset = (new Date()).getTimezoneOffset() * 60000;
+                  return (new Date(Date.now() - tzOffset)).toISOString().split('T')[0];
+                })()}" required class="input-field" />
               </div>
               <div class="form-group">
                 <label class="form-label" for="estaturaCm">Estatura (cm) *</label>
@@ -261,7 +264,17 @@ function renderizarFormulario(contenedor) {
       { campo: 'nombreCompleto', nombre: 'Nombre', valor: nombre, validacion: validators.soloLetras },
       { campo: 'email', nombre: 'Correo', valor: email, validacion: validators.email },
       { campo: 'telefono', nombre: 'Teléfono', valor: phone, validacion: validators.telefono },
-      { campo: 'fechaNacimiento', nombre: 'Fecha de nacimiento', valor: fechaNac, validacion: (v) => !v ? 'La fecha de nacimiento es obligatoria' : null },
+      { campo: 'fechaNacimiento', nombre: 'Fecha de nacimiento', valor: fechaNac, validacion: (v) => {
+        if (!v) return 'La fecha de nacimiento es obligatoria';
+        const parts = v.split('-');
+        const birthDate = new Date(parts[0], parts[1] - 1, parts[2]); // medianoche local del día seleccionado
+        const ahora = new Date();
+        const diffHours = (ahora - birthDate) / (1000 * 60 * 60);
+        if (diffHours < 1) {
+          return 'El paciente debe tener al menos una hora de nacido (la fecha de nacimiento no puede ser futura ni de hoy si ha transcurrido menos de una hora)';
+        }
+        return null;
+      }},
       { campo: 'estaturaCm', nombre: 'Estatura', valor: estaturaVal, validacion: (v) => {
         if (!v) return 'La estatura es obligatoria';
         const num = parseFloat(v);
@@ -340,11 +353,11 @@ async function renderizarDetalle(contenedor) {
           <div class="info-grid">
             <div class="info-item">
               <label>Nombre Completo</label>
-              <p>${paciente.nombreCompleto}</p>
+              <p class="break-words">${paciente.nombreCompleto}</p>
             </div>
-            <div class="info-item">
+            <div class="info-item min-w-0">
               <label>Correo Electrónico</label>
-              <p>${paciente.email}</p>
+              <p class="break-all">${paciente.email}</p>
             </div>
             <div class="info-item">
               <label>Teléfono</label>
@@ -779,16 +792,16 @@ function renderizarEditarProgreso(contenedor) {
                 <input type="number" id="editPeso" step="0.1" value="${p.peso_kg || p.peso || ''}" required class="input-field" />
               </div>
               <div class="form-group">
-                <label class="form-label" for="editImc">IMC</label>
-                <input type="number" id="editImc" step="0.1" value="${p.imc || ''}" class="input-field" />
+                <label class="form-label" for="editImc">IMC (Autocalculado)</label>
+                <input type="number" id="editImc" step="0.1" value="${p.imc || ''}" readonly class="input-field bg-slate-100 dark:bg-slate-800 cursor-not-allowed" placeholder="Autocalculado" />
               </div>
               <div class="form-group">
                 <label class="form-label" for="editGrasa">Grasa Corporal (%)</label>
                 <input type="number" id="editGrasa" step="0.1" value="${p.porcentaje_grasa || p.grasa || ''}" class="input-field" />
               </div>
               <div class="form-group">
-                <label class="form-label" for="editMasaMuscular">Masa Muscular (kg)</label>
-                <input type="number" id="editMasaMuscular" step="0.1" value="${p.masa_muscular || ''}" class="input-field" />
+                <label class="form-label" for="editMasaMuscular">Masa Muscular (kg) (Autocalculada)</label>
+                <input type="number" id="editMasaMuscular" step="0.1" value="${p.masa_muscular || ''}" readonly class="input-field bg-slate-100 dark:bg-slate-800 cursor-not-allowed" placeholder="Autocalculado" />
               </div>
               <div class="form-group">
                 <label class="form-label" for="editGrasaVisceral">Grasa Visceral</label>
@@ -851,12 +864,52 @@ function renderizarEditarProgreso(contenedor) {
     modo = 'detalle';
     await renderizarVista();
   };
+
+  setTimeout(() => {
+    const pesoInput = document.getElementById('editPeso');
+    const grasaInput = document.getElementById('editGrasa');
+    const imcInput = document.getElementById('editImc');
+    const masaMuscularInput = document.getElementById('editMasaMuscular');
+    const estatura = pacienteEnEdicion?.estatura_cm || pacienteEnEdicion?.estatura || 0;
+
+    if (pesoInput) {
+      const calcImc = () => {
+        const peso = parseFloat(pesoInput.value);
+        if (peso > 0 && estatura > 0) {
+          const estaturaM = estatura > 3 ? estatura / 100 : estatura;
+          imcInput.value = (peso / (estaturaM * estaturaM)).toFixed(1);
+        } else {
+          imcInput.value = '';
+        }
+      };
+      const calcMasaMuscular = () => {
+        const peso = parseFloat(pesoInput.value);
+        const grasa = parseFloat(grasaInput.value);
+        if (peso > 0 && grasa >= 0) {
+          masaMuscularInput.value = (peso * (1 - (grasa / 100))).toFixed(1);
+        } else {
+          masaMuscularInput.value = '';
+        }
+      };
+      
+      pesoInput.addEventListener('input', () => { calcImc(); calcMasaMuscular(); });
+      pesoInput.addEventListener('change', () => { calcImc(); calcMasaMuscular(); });
+      if (grasaInput) {
+        grasaInput.addEventListener('input', calcMasaMuscular);
+        grasaInput.addEventListener('change', calcMasaMuscular);
+      }
+    }
+  }, 0);
 }
 
-function renderizarNuevoProgreso(contenedor) {
+async function renderizarNuevoProgreso(contenedor) {
   const paciente = pacienteEnEdicion;
   const estatura = paciente?.estatura_cm || paciente?.estatura || 0;
   const today = new Date().toISOString().split('T')[0];
+  const progresoList = await getProgresoPaciente(paciente.id_paciente).catch(() => []);
+  const ultimoProgreso = progresoList.length > 0 
+    ? [...progresoList].sort((a, b) => new Date(b.fecha_revision) - new Date(a.fecha_revision))[0] 
+    : null;
 
   contenedor.innerHTML = `
     <div class="animate-slide-in max-w-2xl">
@@ -897,23 +950,23 @@ function renderizarNuevoProgreso(contenedor) {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div class="form-group">
                 <label class="form-label" for="nuevoPeso">Peso (kg) *</label>
-                <input type="number" id="nuevoPeso" step="0.1" required placeholder="75.5" class="input-field" />
+                <input type="number" id="nuevoPeso" step="0.1" value="${ultimoProgreso?.peso_kg || ultimoProgreso?.peso || ''}" required placeholder="75.5" class="input-field" />
               </div>
               <div class="form-group">
                 <label class="form-label" for="nuevoImc">IMC (Autocalculado)</label>
-                <input type="number" id="nuevoImc" step="0.1" readonly class="input-field bg-slate-100 dark:bg-slate-800 cursor-not-allowed" placeholder="Autocalculado" />
+                <input type="number" id="nuevoImc" step="0.1" value="${ultimoProgreso?.imc || ''}" readonly class="input-field bg-slate-100 dark:bg-slate-800 cursor-not-allowed" placeholder="Autocalculado" />
               </div>
               <div class="form-group">
                 <label class="form-label" for="nuevaGrasa">Grasa Corporal (%)</label>
-                <input type="number" id="nuevaGrasa" step="0.1" placeholder="25.5" class="input-field" />
+                <input type="number" id="nuevaGrasa" step="0.1" value="${ultimoProgreso?.porcentaje_grasa || ultimoProgreso?.grasa || ''}" placeholder="25.5" class="input-field" />
               </div>
               <div class="form-group">
-                <label class="form-label" for="nuevaMasaMuscular">Masa Muscular (kg)</label>
-                <input type="number" id="nuevaMasaMuscular" step="0.1" placeholder="35.2" class="input-field" />
+                <label class="form-label" for="nuevaMasaMuscular">Masa Muscular (kg) (Autocalculada)</label>
+                <input type="number" id="nuevaMasaMuscular" step="0.1" value="${ultimoProgreso?.masa_muscular || ''}" placeholder="Autocalculado" readonly class="input-field bg-slate-100 dark:bg-slate-800 cursor-not-allowed" />
               </div>
               <div class="form-group">
                 <label class="form-label" for="nuevaGrasaVisceral">Grasa Visceral</label>
-                <input type="number" id="nuevaGrasaVisceral" step="0.1" placeholder="8.0" class="input-field" />
+                <input type="number" id="nuevaGrasaVisceral" step="0.1" value="${ultimoProgreso?.grasa_visceral || ''}" placeholder="8.0" class="input-field" />
               </div>
             </div>
             <div class="form-group">
@@ -940,8 +993,10 @@ function renderizarNuevoProgreso(contenedor) {
   setTimeout(() => {
     const pesoInput = document.getElementById('nuevoPeso');
     const imcInput = document.getElementById('nuevoImc');
+    const grasaInput = document.getElementById('nuevaGrasa');
+    const masaMuscularInput = document.getElementById('nuevaMasaMuscular');
 
-    if (pesoInput && imcInput) {
+    if (pesoInput) {
       const calcImc = () => {
         const peso = parseFloat(pesoInput.value);
         if (peso > 0 && estatura > 0) {
@@ -951,8 +1006,22 @@ function renderizarNuevoProgreso(contenedor) {
           imcInput.value = '';
         }
       };
-      pesoInput.addEventListener('input', calcImc);
-      pesoInput.addEventListener('change', calcImc);
+      const calcMasaMuscular = () => {
+        const peso = parseFloat(pesoInput.value);
+        const grasa = parseFloat(grasaInput.value);
+        if (peso > 0 && grasa >= 0) {
+          masaMuscularInput.value = (peso * (1 - (grasa / 100))).toFixed(1);
+        } else {
+          masaMuscularInput.value = '';
+        }
+      };
+      
+      pesoInput.addEventListener('input', () => { calcImc(); calcMasaMuscular(); });
+      pesoInput.addEventListener('change', () => { calcImc(); calcMasaMuscular(); });
+      if (grasaInput) {
+        grasaInput.addEventListener('input', calcMasaMuscular);
+        grasaInput.addEventListener('change', calcMasaMuscular);
+      }
     }
   }, 0);
 
