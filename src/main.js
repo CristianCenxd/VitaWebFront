@@ -5,10 +5,12 @@ import { DashboardPage } from './pages/dashboard.js'
 import { PacientesPage } from './pages/pacientes.js'
 import { CitasPage } from './pages/citas.js'
 import { ConfiguracionPage } from './pages/configuracion.js'
+import { ForgotPasswordPage } from './pages/forgot-password.js'
 
 // Registrar rutas
 router.register('/', LoginPage)
 router.register('/login', LoginPage)
+router.register('/forgot-password', ForgotPasswordPage)
 router.register('/dashboard', DashboardPage)
 router.register('/pacientes', PacientesPage)
 router.register('/citas', CitasPage)

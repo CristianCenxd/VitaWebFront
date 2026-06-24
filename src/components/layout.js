@@ -76,8 +76,8 @@ export const createLayout = (content, currentPage) => {
       </aside>
 
       <!-- Main Content -->
-      <main id="mainContent" class="flex-1 overflow-auto bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 dark:text-slate-100 transition-colors duration-200" style="margin-left: 280px;">
-        <div class="p-8 max-w-7xl mx-auto">
+      <main id="mainContent" class="flex-1 overflow-auto bg-gradient-to-br from-slate-50 to-slate-100 transition-colors duration-200 main-content-push">
+        <div class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
           ${content}
         </div>
       </main>

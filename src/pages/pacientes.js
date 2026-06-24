@@ -14,6 +14,7 @@ import {
 import { router } from '../utils/router.js';
 import { formatDate, formatDateTime, getEstadoStyle, getEstadoLabel } from '../utils/formatters.js';
 import { createLayout } from '../components/layout.js';
+import { validators, validarFormulario } from '../utils/validation.js';
 import { Chart, registerables } from 'chart.js';
 
 Chart.register(...registerables);
@@ -249,20 +250,40 @@ function renderizarFormulario(contenedor) {
   document.getElementById('formPaciente').onsubmit = async (e) => {
     e.preventDefault();
     const phone = document.getElementById('telefono').value.trim();
-    if (phone.length !== 10) {
-      alert('El teléfono debe tener exactamente 10 dígitos.');
-      return;
-    }
+    const nombre = document.getElementById('nombreCompleto').value;
+    const email = document.getElementById('email').value;
+    const fechaNac = document.getElementById('fechaNacimiento').value;
+    const estaturaVal = document.getElementById('estaturaCm').value;
+    const sexoVal = document.getElementById('sexo').value;
+    const antecedentesVal = document.getElementById('antecedentes').value;
+
+    const valido = validarFormulario([
+      { campo: 'nombreCompleto', nombre: 'Nombre', valor: nombre, validacion: validators.soloLetras },
+      { campo: 'email', nombre: 'Correo', valor: email, validacion: validators.email },
+      { campo: 'telefono', nombre: 'Teléfono', valor: phone, validacion: validators.telefono },
+      { campo: 'fechaNacimiento', nombre: 'Fecha de nacimiento', valor: fechaNac, validacion: (v) => !v ? 'La fecha de nacimiento es obligatoria' : null },
+      { campo: 'estaturaCm', nombre: 'Estatura', valor: estaturaVal, validacion: (v) => {
+        if (!v) return 'La estatura es obligatoria';
+        const num = parseFloat(v);
+        if (isNaN(num) || num <= 0) return 'La estatura debe ser un número positivo';
+        if (num < 30 || num > 300) return 'La estatura debe estar entre 30 y 300 cm';
+        return null;
+      }},
+      { campo: 'sexo', nombre: 'Sexo', valor: sexoVal, validacion: (v) => !v ? 'Selecciona un sexo' : null },
+      { campo: 'antecedentes', nombre: 'Antecedentes', valor: antecedentesVal, validacion: (v) => !v?.trim() ? 'Los antecedentes médicos son obligatorios' : null }
+    ]);
+    if (!valido) return;
+
     const datos = {
-      nombreCompleto: document.getElementById('nombreCompleto').value,
-      email: document.getElementById('email').value,
+      nombreCompleto: nombre,
+      email: email,
       telefono: phone,
-      fecha_nacimiento: document.getElementById('fechaNacimiento').value,
-      antecedentes: document.getElementById('antecedentes').value,
+      fecha_nacimiento: fechaNac,
+      antecedentes: antecedentesVal,
       estado: document.getElementById('estado').value,
       activo: document.getElementById('estado').value === 'activo',
-      estatura_cm: parseFloat(document.getElementById('estaturaCm').value),
-      sexo: document.getElementById('sexo').value
+      estatura_cm: parseFloat(estaturaVal),
+      sexo: sexoVal
     };
     try {
       if (modo === 'crear') await agregarPaciente(datos);
@@ -711,11 +732,20 @@ function renderizarEnviarCorreo(contenedor) {
 
   document.getElementById('formCorreo').onsubmit = async (e) => {
     e.preventDefault();
+    const asunto = document.getElementById('asunto').value;
+    const contenido = document.getElementById('contenido').value;
+
+    const valido = validarFormulario([
+      { campo: 'asunto', nombre: 'Asunto', valor: asunto, validacion: (v) => !v?.trim() ? 'El asunto es obligatorio' : null },
+      { campo: 'contenido', nombre: 'Mensaje', valor: contenido, validacion: (v) => !v?.trim() ? 'El mensaje es obligatorio' : null }
+    ]);
+    if (!valido) return;
+
     try {
       await agregarCorreo({
         id_paciente: paciente.id_paciente,
-        asunto: document.getElementById('asunto').value,
-        contenido: document.getElementById('contenido').value
+        asunto,
+        contenido
       });
       modo = 'detalle';
       await renderizarVista();
@@ -788,9 +818,20 @@ function renderizarEditarProgreso(contenedor) {
 
   document.getElementById('formEditarProgreso').onsubmit = async (e) => {
     e.preventDefault();
-    const peso = parseFloat(document.getElementById('editPeso').value);
+    const peso = document.getElementById('editPeso').value;
+
+    const valido = validarFormulario([
+      { campo: 'editPeso', nombre: 'Peso', valor: peso, validacion: (v) => {
+        if (!v) return 'El peso es obligatorio';
+        const num = parseFloat(v);
+        if (isNaN(num) || num <= 0) return 'El peso debe ser un número positivo';
+        return null;
+      }}
+    ]);
+    if (!valido) return;
+
     const datos = {
-      peso_kg: peso,
+      peso_kg: parseFloat(peso),
       porcentaje_grasa: parseFloat(document.getElementById('editGrasa').value) || null,
       masa_muscular: parseFloat(document.getElementById('editMasaMuscular').value) || null,
       grasa_visceral: parseFloat(document.getElementById('editGrasaVisceral').value) || null,
@@ -917,14 +958,28 @@ function renderizarNuevoProgreso(contenedor) {
 
   document.getElementById('formNuevoProgreso').onsubmit = async (e) => {
     e.preventDefault();
-    const peso = parseFloat(document.getElementById('nuevoPeso').value);
+    const peso = document.getElementById('nuevoPeso').value;
+    const fechaRev = document.getElementById('nuevaFecha').value;
+
+    const valido = validarFormulario([
+      { campo: 'nuevaFecha', nombre: 'Fecha', valor: fechaRev, validacion: (v) => !v ? 'La fecha es obligatoria' : null },
+      { campo: 'nuevoPeso', nombre: 'Peso', valor: peso, validacion: (v) => {
+        if (!v) return 'El peso es obligatorio';
+        const num = parseFloat(v);
+        if (isNaN(num) || num <= 0) return 'El peso debe ser un número positivo';
+        return null;
+      }}
+    ]);
+    if (!valido) return;
+
+    const pesoNum = parseFloat(peso);
     const estaturaM = estatura > 0 ? (estatura > 3 ? estatura / 100 : estatura) : 0;
-    const imcCalc = estaturaM > 0 && peso > 0 ? parseFloat((peso / (estaturaM * estaturaM)).toFixed(1)) : null;
+    const imcCalc = estaturaM > 0 && pesoNum > 0 ? parseFloat((pesoNum / (estaturaM * estaturaM)).toFixed(1)) : null;
 
     const datos = {
       id_paciente: paciente.id_paciente,
-      fecha_revision: document.getElementById('nuevaFecha').value,
-      peso_kg: peso,
+      fecha_revision: fechaRev,
+      peso_kg: pesoNum,
       porcentaje_grasa: parseFloat(document.getElementById('nuevaGrasa').value) || null,
       masa_muscular: parseFloat(document.getElementById('nuevaMasaMuscular').value) || null,
       grasa_visceral: parseFloat(document.getElementById('nuevaGrasaVisceral').value) || null,

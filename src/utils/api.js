@@ -78,6 +78,13 @@ export const restablecerContrasena = async (token, nuevaContrasena) => {
   });
 };
 
+export const actualizarNutriologo = async (datos) => {
+  return apiFetch('/api/auth/perfil', {
+    method: 'PUT',
+    body: JSON.stringify(datos)
+  });
+};
+
 // --- Pacientes ---
 export const getPacientes = async () => {
   const res = await apiFetch('/api/pacientes');

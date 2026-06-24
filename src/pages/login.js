@@ -1,5 +1,6 @@
 import { loginNutriologo, registrarNutriologo } from '../utils/api.js';
 import { router } from '../utils/router.js';
+import { validators, validarFormulario, limpiarValidaciones, limpiarValidacionEnCampo } from '../utils/validation.js';
 
 export const LoginPage = async () => {
   const html = `
@@ -17,12 +18,12 @@ export const LoginPage = async () => {
           <div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center text-2xl font-bold text-white mx-auto mb-4 shadow-2xl shadow-blue-500/20 ring-2 ring-white/10">
             V
           </div>
-          <h1 class="text-3xl font-bold text-white tracking-tight">VitaNutrición</h1>
+          <h1 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">VitaNutrición</h1>
           <p class="text-blue-200/70 mt-2 font-medium">Dashboard del Nutriólogo</p>
         </div>
 
         <!-- Card Container -->
-        <div class="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-white/20">
+        <div class="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl p-6 sm:p-8 border border-white/20">
           
           <!-- Auth Toggle Tabs -->
           <div class="flex bg-slate-100 p-1 rounded-xl mb-6">
@@ -67,7 +68,7 @@ export const LoginPage = async () => {
                 <input type="text" id="nombreCompleto" placeholder="Tu nombre completo" class="input-field" />
               </div>
 
-              <div class="grid grid-cols-2 gap-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="form-group">
                   <label class="form-label flex items-center gap-2" for="telefono">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -113,6 +114,13 @@ export const LoginPage = async () => {
               <input type="password" id="password" required placeholder="••••••••" class="input-field" />
             </div>
 
+            <!-- Forgot Password Link -->
+            <div class="text-right -mt-2">
+              <a href="#/forgot-password" class="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors">
+                ¿Olvidó su contraseña?
+              </a>
+            </div>
+
             <!-- Submit Button -->
             <button type="submit" id="submitBtn" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg shadow-blue-600/20 hover:shadow-xl hover:shadow-blue-600/30 hover:-translate-y-0.5 flex items-center justify-center gap-2">
               <span id="submitText">Iniciar Sesión</span>
@@ -124,7 +132,7 @@ export const LoginPage = async () => {
   `;
 
   setTimeout(() => {
-    let mode = 'login'; // 'login' o 'register'
+    let mode = 'login';
     const tabLogin = document.getElementById('tabLogin');
     const tabRegister = document.getElementById('tabRegister');
     const registerFields = document.getElementById('registerFields');
@@ -146,6 +154,7 @@ export const LoginPage = async () => {
       mode = newMode;
       errorAlert.classList.add('hidden');
       successAlert.classList.add('hidden');
+      limpiarValidaciones();
 
       if (mode === 'login') {
         tabLogin.className = "flex-1 text-center py-2 text-sm font-semibold rounded-lg bg-white text-slate-800 shadow-sm transition-all";
@@ -188,19 +197,26 @@ export const LoginPage = async () => {
 
       try {
         if (mode === 'login') {
+          const valido = validarFormulario([
+            { campo: 'email', nombre: 'Correo', valor: emailInput.value, validacion: validators.email },
+            { campo: 'password', nombre: 'Contraseña', valor: passwordInput.value, validacion: validators.contrasena }
+          ]);
+          if (!valido) return;
+
           await loginNutriologo(emailInput.value, passwordInput.value);
           router.navigate('/dashboard');
         } else {
           const phone = telefonoInput.value.trim();
           const cedulaVal = cedulaInput.value.trim();
 
-          if (phone.length !== 10) {
-            throw new Error('El teléfono debe tener exactamente 10 dígitos.');
-          }
-
-          if (cedulaVal.length < 7 || cedulaVal.length > 8) {
-            throw new Error('La cédula profesional debe tener 7 u 8 dígitos.');
-          }
+          const valido = validarFormulario([
+            { campo: 'nombreCompleto', nombre: 'Nombre', valor: nombreInput.value, validacion: validators.soloLetras },
+            { campo: 'email', nombre: 'Correo', valor: emailInput.value, validacion: validators.email },
+            { campo: 'telefono', nombre: 'Teléfono', valor: phone, validacion: validators.telefono },
+            { campo: 'cedula', nombre: 'Cédula', valor: cedulaVal, validacion: validators.cedula },
+            { campo: 'password', nombre: 'Contraseña', valor: passwordInput.value, validacion: validators.contrasena }
+          ]);
+          if (!valido) return;
 
           await registrarNutriologo({
             nombreCompleto: nombreInput.value,

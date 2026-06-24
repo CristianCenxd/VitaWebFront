@@ -13,6 +13,7 @@ import {
 import { router } from '../utils/router.js';
 import { formatDate, formatDateTime, getEstadoStyle, getEstadoLabel } from '../utils/formatters.js';
 import { createLayout } from '../components/layout.js';
+import { validators, validarFormulario } from '../utils/validation.js';
 
 let modo = 'lista';
 let citaEnEdicion = null;
@@ -369,13 +370,22 @@ async function renderizarFormulario(contenedor) {
 
   document.getElementById('formCita').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const selectedPaciente = pacientes.find(p => p.id_paciente === parseInt(document.getElementById('idPaciente').value));
+    const idPaciente = document.getElementById('idPaciente').value;
+    const fechaHora = document.getElementById('fechaHora').value;
+    const motivo = document.getElementById('motivo').value;
+
+    const valido = validarFormulario([
+      { campo: 'idPaciente', nombre: 'Paciente', valor: idPaciente, validacion: (v) => !v ? 'Selecciona un paciente' : null },
+      { campo: 'fechaHora', nombre: 'Fecha y hora', valor: fechaHora, validacion: (v) => !v ? 'La fecha y hora son obligatorias' : null },
+      { campo: 'motivo', nombre: 'Motivo', valor: motivo, validacion: (v) => !v?.trim() ? 'El motivo es obligatorio' : null }
+    ]);
+    if (!valido) return;
+
+    const selectedPaciente = pacientes.find(p => p.id_paciente === parseInt(idPaciente));
     const datos = {
-      id_paciente: parseInt(document.getElementById('idPaciente').value),
-      fecha_hora: document.getElementById('fechaHora').value
-        ? document.getElementById('fechaHora').value + ':00'
-        : '',
-      motivo: document.getElementById('motivo').value,
+      id_paciente: parseInt(idPaciente),
+      fecha_hora: fechaHora + ':00',
+      motivo,
       estado: document.getElementById('estado').value,
       email_paciente: selectedPaciente?.email || ''
     };
@@ -505,8 +515,27 @@ async function renderizarSeguimiento(contenedor) {
   document.getElementById('formSeguimiento').addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    const peso = parseFloat(document.getElementById('peso').value);
-    const estatura = parseFloat(document.getElementById('estatura').value);
+    const pesoVal = document.getElementById('peso').value;
+    const estaturaVal = document.getElementById('estatura').value;
+
+    const valido = validarFormulario([
+      { campo: 'estatura', nombre: 'Estatura', valor: estaturaVal, validacion: (v) => {
+        if (!v) return 'La estatura es obligatoria';
+        const num = parseFloat(v);
+        if (isNaN(num) || num <= 0) return 'La estatura debe ser un número positivo';
+        return null;
+      }},
+      { campo: 'peso', nombre: 'Peso', valor: pesoVal, validacion: (v) => {
+        if (!v) return 'El peso es obligatorio';
+        const num = parseFloat(v);
+        if (isNaN(num) || num <= 0) return 'El peso debe ser un número positivo';
+        return null;
+      }}
+    ]);
+    if (!valido) return;
+
+    const peso = parseFloat(pesoVal);
+    const estatura = parseFloat(estaturaVal);
     let imcCalculated = parseFloat(document.getElementById('imc').value) || null;
     
     if (!imcCalculated && peso > 0 && estatura > 0) {
@@ -514,7 +543,6 @@ async function renderizarSeguimiento(contenedor) {
       imcCalculated = parseFloat((peso / (estaturaM * estaturaM)).toFixed(1));
     }
 
-    // Actualizar la estatura en el perfil del paciente si cambió o no estaba definida
     const estaturaOriginal = paciente?.estatura_cm || paciente?.estatura || paciente?.height;
     if (estatura > 0 && estatura !== estaturaOriginal) {
       const datosActualizados = {

@@ -1,9 +1,13 @@
 import { createLayout } from '../components/layout.js';
-import { getGoogleAuthUrl, getGoogleStatus } from '../utils/api.js';
+import { getGoogleAuthUrl, getGoogleStatus, actualizarNutriologo } from '../utils/api.js';
+import { validators, validarFormulario } from '../utils/validation.js';
+import { router } from '../utils/router.js';
 
 export const ConfiguracionPage = async () => {
   const isDark = localStorage.getItem('theme') === 'dark';
   let googleStatus = null;
+  const nutriologo = JSON.parse(localStorage.getItem('nutriologo_actual')) || {};
+
   try {
     googleStatus = await getGoogleStatus();
   } catch (e) {
@@ -11,16 +15,56 @@ export const ConfiguracionPage = async () => {
   }
 
   const conectado = googleStatus?.conectado === true;
+  const n = nutriologo;
 
   const html = `
     <div class="space-y-8 animate-slide-in">
-      <!-- Page Header -->
       <div class="page-header">
         <h1>Configuración</h1>
         <p>Ajusta las preferencias de la aplicación</p>
       </div>
 
       <div class="max-w-2xl space-y-6">
+        <!-- Datos del Nutriólogo -->
+        <div class="detail-section" id="seccionPerfil">
+          <div class="detail-section-header">
+            <h2>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              Datos del Nutriólogo
+            </h2>
+            <button id="editarPerfilBtn" class="btn-ghost">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+              Editar
+            </button>
+          </div>
+          <div class="detail-section-body" id="cuerpoPerfil">
+            <div class="info-grid">
+              <div class="info-item">
+                <label>Nombre Completo</label>
+                <p>${n.nombreCompleto || n.nombre || '—'}</p>
+              </div>
+              <div class="info-item">
+                <label>Correo Electrónico</label>
+                <p>${n.email || '—'}</p>
+              </div>
+              <div class="info-item">
+                <label>Teléfono</label>
+                <p>${n.telefono || '—'}</p>
+              </div>
+              <div class="info-item">
+                <label>Cédula Profesional</label>
+                <p>${n.cedula || '—'}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Preferencias Visuales -->
         <div class="detail-section">
           <div class="detail-section-header">
@@ -36,7 +80,7 @@ export const ConfiguracionPage = async () => {
             <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800">
               <div>
                 <p class="font-semibold text-slate-900 dark:text-white text-sm">Modo Oscuro</p>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Cambia la interfaz a una paleta de colores oscuros para descansar la vista</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Cambia la interfaz a una paleta de colores oscuros</p>
               </div>
               <label class="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" id="darkModeToggle" class="sr-only peer" ${isDark ? 'checked' : ''}>
@@ -74,7 +118,7 @@ export const ConfiguracionPage = async () => {
                 </div>
                 <div>
                   <p class="font-semibold text-slate-900 dark:text-white text-sm">Sincronización con Google Calendar</p>
-                  <p class="text-xs text-slate-500 dark:text-slate-400">${conectado ? 'Tu calendario está conectado. Las citas se sincronizarán automáticamente.' : 'Conecta tu Google Calendar para sincronizar las citas automáticamente y enviar invitaciones por correo a tus pacientes.'}</p>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">${conectado ? 'Tu calendario está conectado.' : 'Conecta tu Google Calendar para sincronizar las citas.'}</p>
                 </div>
               </div>
               <div id="googleCalendarStatus" class="flex-shrink-0">
@@ -96,11 +140,171 @@ export const ConfiguracionPage = async () => {
             </button>
           </div>
         </div>
+
+        <!-- Cerrar Sesión -->
+        <div class="detail-section border-red-200 dark:border-red-900/40">
+          <div class="detail-section-header">
+            <h2 class="text-red-600 dark:text-red-400">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+              Cerrar Sesión
+            </h2>
+          </div>
+          <div class="detail-section-body">
+            <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">Cierra tu sesión actual. Serás redirigido a la pantalla de inicio de sesión.</p>
+            <button id="cerrarSesionBtn" class="btn-danger w-full justify-center">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+              Cerrar Sesión
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   `;
 
   setTimeout(() => {
+    const nutriologoData = JSON.parse(localStorage.getItem('nutriologo_actual')) || {};
+
+    // Editar perfil
+    const editarBtn = document.getElementById('editarPerfilBtn');
+    if (editarBtn) {
+      editarBtn.addEventListener('click', () => {
+        const cuerpo = document.getElementById('cuerpoPerfil');
+        const n = nutriologoData;
+        cuerpo.innerHTML = `
+          <form id="formPerfil" class="space-y-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div class="form-group">
+                <label class="form-label" for="editNombre">Nombre Completo</label>
+                <input type="text" id="editNombre" value="${n.nombreCompleto || n.nombre || ''}" class="input-field" placeholder="Tu nombre completo" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="editEmail">Correo Electrónico</label>
+                <input type="email" id="editEmail" value="${n.email || ''}" class="input-field" placeholder="tu@email.com" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="editTelefono">Teléfono</label>
+                <input type="tel" id="editTelefono" value="${n.telefono || ''}" maxlength="10" class="input-field" placeholder="10 dígitos" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="editCedula">Cédula Profesional</label>
+                <input type="text" id="editCedula" value="${n.cedula || ''}" maxlength="8" class="input-field" placeholder="7 u 8 dígitos" />
+              </div>
+            </div>
+            <div class="flex gap-3 pt-2">
+              <button type="submit" class="btn-success">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                Guardar Cambios
+              </button>
+              <button type="button" id="cancelarEditarPerfil" class="btn-secondary">Cancelar</button>
+            </div>
+          </form>
+        `;
+
+        const telInput = document.getElementById('editTelefono');
+        if (telInput) {
+          telInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/\D/g, '');
+          });
+        }
+
+        const cedulaInput = document.getElementById('editCedula');
+        if (cedulaInput) {
+          cedulaInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/\D/g, '');
+          });
+        }
+
+        document.getElementById('formPerfil').onsubmit = async (e) => {
+          e.preventDefault();
+          const nombre = document.getElementById('editNombre').value;
+          const email = document.getElementById('editEmail').value;
+          const telefono = document.getElementById('editTelefono').value;
+          const cedula = document.getElementById('editCedula').value;
+
+          const valido = validarFormulario([
+            { campo: 'editNombre', nombre: 'Nombre', valor: nombre, validacion: validators.soloLetras },
+            { campo: 'editEmail', nombre: 'Correo', valor: email, validacion: validators.email },
+            { campo: 'editTelefono', nombre: 'Teléfono', valor: telefono, validacion: validators.telefono },
+            { campo: 'editCedula', nombre: 'Cédula', valor: cedula, validacion: validators.cedula }
+          ]);
+          if (!valido) return;
+
+          const datosActualizados = {
+            ...nutriologoData,
+            nombreCompleto: nombre,
+            email,
+            telefono,
+            cedula
+          };
+
+          localStorage.setItem('nutriologo_actual', JSON.stringify(datosActualizados));
+
+          try {
+            await actualizarNutriologo(datosActualizados);
+          } catch (err) {
+            console.warn('No se pudo actualizar en el servidor:', err.message);
+          }
+
+          cuerpo.innerHTML = `
+            <div class="info-grid">
+              <div class="info-item">
+                <label>Nombre Completo</label>
+                <p>${nombre}</p>
+              </div>
+              <div class="info-item">
+                <label>Correo Electrónico</label>
+                <p>${email}</p>
+              </div>
+              <div class="info-item">
+                <label>Teléfono</label>
+                <p>${telefono}</p>
+              </div>
+              <div class="info-item">
+                <label>Cédula Profesional</label>
+                <p>${cedula}</p>
+              </div>
+            </div>
+          `;
+          editarBtn.classList.remove('hidden');
+        };
+
+        document.getElementById('cancelarEditarPerfil').onclick = () => {
+          const n = JSON.parse(localStorage.getItem('nutriologo_actual')) || {};
+          cuerpo.innerHTML = `
+            <div class="info-grid">
+              <div class="info-item">
+                <label>Nombre Completo</label>
+                <p>${n.nombreCompleto || n.nombre || '—'}</p>
+              </div>
+              <div class="info-item">
+                <label>Correo Electrónico</label>
+                <p>${n.email || '—'}</p>
+              </div>
+              <div class="info-item">
+                <label>Teléfono</label>
+                <p>${n.telefono || '—'}</p>
+              </div>
+              <div class="info-item">
+                <label>Cédula Profesional</label>
+                <p>${n.cedula || '—'}</p>
+              </div>
+            </div>
+          `;
+        };
+      });
+    }
+
+    // Dark mode toggle
     const toggle = document.getElementById('darkModeToggle');
     if (toggle) {
       toggle.addEventListener('change', (e) => {
@@ -114,6 +318,7 @@ export const ConfiguracionPage = async () => {
       });
     }
 
+    // Google Calendar
     const googleBtn = document.getElementById('googleCalendarBtn');
     if (googleBtn) {
       googleBtn.addEventListener('click', async () => {
@@ -129,6 +334,19 @@ export const ConfiguracionPage = async () => {
           }
         } catch (err) {
           alert('Error al conectar con Google Calendar: ' + err.message);
+        }
+      });
+    }
+
+    // Cerrar sesión
+    const cerrarBtn = document.getElementById('cerrarSesionBtn');
+    if (cerrarBtn) {
+      cerrarBtn.addEventListener('click', () => {
+        if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('nutriologo_actual');
+          document.documentElement.classList.remove('dark');
+          router.navigate('/login');
         }
       });
     }
