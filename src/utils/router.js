@@ -11,7 +11,8 @@ export class Router {
   }
 
   async navigate(path) {
-    const component = this.routes[path];
+    const routePath = path.split('?')[0];
+    const component = this.routes[routePath];
     if (!component) {
       console.error(`Ruta no encontrada: ${path}`);
       return;
