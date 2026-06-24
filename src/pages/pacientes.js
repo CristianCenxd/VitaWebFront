@@ -25,10 +25,27 @@ let progresoEnEdicion = null;
 let chartInstance = null;
 
 export const PacientesPage = async () => {
-  const content = `<div id="contenidoPacientes"></div>`;
+  modo = 'lista';
+  pacienteEnEdicion = null;
+  progresoEnEdicion = null;
 
-  setTimeout(() => {
-    renderizarVista();
+  const content = `
+    <div id="contenidoPacientes" class="animate-slide-in space-y-6">
+      <div class="page-header flex items-center justify-between">
+        <div>
+          <h1>Pacientes</h1>
+          <p>Gestión de pacientes registrados en tu consulta</p>
+        </div>
+      </div>
+      <div class="text-center py-16">
+        <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p class="text-slate-500 font-medium">Cargando pacientes...</p>
+      </div>
+    </div>
+  `;
+
+  setTimeout(async () => {
+    await renderizarVista();
   }, 0);
 
   return content;
@@ -47,10 +64,22 @@ async function renderizarVista() {
 }
 
 async function renderizarLista(contenedor) {
-  contenedor.innerHTML = '<div class="text-center py-16"><p class="text-slate-500 font-medium">Cargando pacientes...</p></div>';
+  if (!contenedor.querySelector('.animate-spin') && !contenedor.querySelector('.patient-card')) {
+    contenedor.innerHTML = `
+      <div class="page-header flex items-center justify-between">
+        <div>
+          <h1>Pacientes</h1>
+          <p>Gestión de pacientes registrados en tu consulta</p>
+        </div>
+      </div>
+      <div class="text-center py-16">
+        <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p class="text-slate-500 font-medium">Cargando pacientes...</p>
+      </div>
+    `;
+  }
   const pacientes = await getPacientes().catch(e => { console.error(e); return []; });
   contenedor.innerHTML = `
-    <div class="animate-slide-in space-y-6">
       <div class="page-header flex items-center justify-between">
         <div>
           <h1>Pacientes</h1>
@@ -132,21 +161,20 @@ async function renderizarLista(contenedor) {
           </div>
         `).join('')}
       </div>
-    </div>
   `;
 
   document.getElementById('crearPacienteBtn').onclick = () => { modo = 'crear'; pacienteEnEdicion = null; renderizarVista(); };
   document.querySelectorAll('.btn-ver').forEach(b => b.onclick = async (e) => { 
     const id = parseInt(e.currentTarget.dataset.id);
-    const pacientes = await getPacientes().catch(() => []);
-    pacienteEnEdicion = pacientes.find(p => p.id_paciente === id); 
+    const pacientesList = await getPacientes().catch(() => []);
+    pacienteEnEdicion = pacientesList.find(p => p.id_paciente === id); 
     modo = 'detalle'; 
     await renderizarVista(); 
   });
   document.querySelectorAll('.btn-editar').forEach(b => b.onclick = async (e) => { 
     const id = parseInt(e.currentTarget.dataset.id);
-    const pacientes = await getPacientes().catch(() => []);
-    pacienteEnEdicion = pacientes.find(p => p.id_paciente === id); 
+    const pacientesList = await getPacientes().catch(() => []);
+    pacienteEnEdicion = pacientesList.find(p => p.id_paciente === id); 
     modo = 'editar'; 
     await renderizarVista(); 
   });
@@ -164,7 +192,7 @@ function renderizarFormulario(contenedor) {
   const datosIniciales = pacienteEnEdicion || {};
 
   contenedor.innerHTML = `
-    <div class="animate-slide-in max-w-2xl">
+    <div class="max-w-2xl">
       <div class="detail-section">
         <div class="detail-section-header">
           <h2>
@@ -331,7 +359,7 @@ async function renderizarDetalle(contenedor) {
   ]);
 
   contenedor.innerHTML = `
-    <div class="animate-slide-in space-y-6">
+    <div class="space-y-6">
       <!-- Back Button -->
       <button id="volverBtn" class="btn-ghost">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -709,7 +737,7 @@ async function renderizarDetalle(contenedor) {
 function renderizarEnviarCorreo(contenedor) {
   const paciente = pacienteEnEdicion;
   contenedor.innerHTML = `
-    <div class="animate-slide-in max-w-2xl">
+    <div class="max-w-2xl">
       <div class="detail-section">
         <div class="detail-section-header">
           <h2>
@@ -786,7 +814,7 @@ function renderizarEditarProgreso(contenedor) {
   if (!p) { modo = 'detalle'; renderizarVista(); return; }
 
   contenedor.innerHTML = `
-    <div class="animate-slide-in max-w-2xl">
+    <div class="max-w-2xl">
       <div class="detail-section">
         <div class="detail-section-header">
           <h2>
@@ -924,7 +952,7 @@ async function renderizarNuevoProgreso(contenedor) {
     : null;
 
   contenedor.innerHTML = `
-    <div class="animate-slide-in max-w-2xl">
+    <div class="max-w-2xl">
       <div class="detail-section">
         <div class="detail-section-header">
           <h2>

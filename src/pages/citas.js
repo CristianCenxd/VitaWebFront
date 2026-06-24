@@ -20,7 +20,19 @@ let modo = 'lista';
 let citaEnEdicion = null;
 
 export const CitasPage = async () => {
-  const content = `<div id="contenidoCitas"></div>`;
+  const content = `
+    <div id="contenidoCitas" class="animate-slide-in space-y-6">
+      <div class="page-header flex items-center justify-between">
+        <div>
+          <h1>Citas</h1>
+          <p>Administra las consultas y seguimientos de tus pacientes</p>
+        </div>
+      </div>
+      <div class="text-center py-16">
+        <p class="text-slate-500 font-medium">Cargando citas...</p>
+      </div>
+    </div>
+  `;
 
   setTimeout(async () => {
     await renderizarVista();
@@ -35,14 +47,12 @@ getGoogleStatus()
   .catch(() => { googleConectado = false; });
 
 async function renderizarLista(contenedor) {
-  contenedor.innerHTML = '<div class="text-center py-16"><p class="text-slate-500 font-medium">Cargando citas...</p></div>';
   const [citas, pacientes] = await Promise.all([
     getCitas().catch(e => { console.error(e); return []; }),
     getPacientes().catch(e => { console.error(e); return []; })
   ]);
 
   contenedor.innerHTML = `
-    <div class="animate-slide-in space-y-6">
       <div class="page-header flex items-center justify-between">
         <div>
           <h1>Citas</h1>

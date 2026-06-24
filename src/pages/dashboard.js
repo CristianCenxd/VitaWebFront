@@ -12,7 +12,18 @@ export const DashboardPage = async () => {
   cachedPacientes = null;
   cachedCitas = null;
 
-  const html = `<div id="contenidoDashboard"></div>`;
+  const html = `
+    <div id="contenidoDashboard" class="space-y-8 animate-slide-in">
+      <div class="page-header">
+        <h1>Dashboard</h1>
+        <p>Bienvenido a tu panel de control de nutrición</p>
+      </div>
+      <div class="text-center py-16">
+        <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p class="text-slate-500 font-medium">Cargando dashboard...</p>
+      </div>
+    </div>
+  `;
 
   setTimeout(async () => {
     await renderizarDashboard();
@@ -26,7 +37,6 @@ async function renderizarDashboard() {
   if (!contenedor) return;
 
   if (!cachedPacientes || !cachedCitas) {
-    contenedor.innerHTML = '<div class="text-center py-16"><p class="text-slate-500 font-medium">Cargando dashboard...</p></div>';
     const [pacientes, citas] = await Promise.all([
       getPacientes().catch(e => { console.error(e); return []; }),
       getCitas().catch(e => { console.error(e); return []; })
@@ -193,95 +203,93 @@ async function renderizarDashboard() {
   }
 
   contenedor.innerHTML = `
-    <div class="space-y-8 animate-slide-in">
-      <div class="page-header">
-        <h1>Dashboard</h1>
-        <p>Bienvenido a tu panel de control de nutrición</p>
-      </div>
+    <div class="page-header">
+      <h1>Dashboard</h1>
+      <p>Bienvenido a tu panel de control de nutrición</p>
+    </div>
 
-      <!-- Tarjetas Estadísticas Interactivas -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <!-- Card Pacientes -->
-        <div id="tabPacientes" class="stat-card blue cursor-pointer select-none transition-all duration-300 ${activeBlue}">
-          <div class="stat-icon">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-              <circle cx="9" cy="7" r="4"/>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-            </svg>
-          </div>
-          <p class="text-white/70 text-xs font-semibold uppercase tracking-wider mb-1">Pacientes</p>
-          <p class="text-3xl font-bold tracking-tight">${listaPacientes.length}</p>
-          <div class="flex items-center gap-1 mt-2 text-white/60 text-xs font-medium">
-            <span>Listar pacientes</span>
-          </div>
+    <!-- Tarjetas Estadísticas Interactivas -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <!-- Card Pacientes -->
+      <div id="tabPacientes" class="stat-card blue cursor-pointer select-none transition-all duration-300 ${activeBlue}">
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
         </div>
-
-        <!-- Card Total Citas -->
-        <div id="tabTotalCitas" class="stat-card green cursor-pointer select-none transition-all duration-300 ${activeGreen}">
-          <div class="stat-icon">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-              <line x1="16" y1="2" x2="16" y2="6"/>
-              <line x1="8" y1="2" x2="8" y2="6"/>
-              <line x1="3" y1="10" x2="21" y2="10"/>
-            </svg>
-          </div>
-          <p class="text-white/70 text-xs font-semibold uppercase tracking-wider mb-1">Total Citas</p>
-          <p class="text-3xl font-bold tracking-tight">${listaCitas.length}</p>
-          <div class="flex items-center gap-1 mt-2 text-white/60 text-xs font-medium">
-            <span>Historial completo</span>
-          </div>
-        </div>
-
-        <!-- Card Citas Pendientes -->
-        <div id="tabCitasPendientes" class="stat-card yellow cursor-pointer select-none transition-all duration-300 ${activeYellow}">
-          <div class="stat-icon">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <circle cx="12" cy="12" r="10"/>
-              <polyline points="12 6 12 12 16 14"/>
-            </svg>
-          </div>
-          <p class="text-white/70 text-xs font-semibold uppercase tracking-wider mb-1">Citas Pendientes</p>
-          <p class="text-3xl font-bold tracking-tight">${citasPendientes}</p>
-          <div class="flex items-center gap-1 mt-2 text-white/60 text-xs font-medium">
-            <span>Por atender</span>
-          </div>
-        </div>
-
-        <!-- Card Citas Completadas -->
-        <div id="tabCitasCompletadas" class="stat-card purple cursor-pointer select-none transition-all duration-300 ${activePurple}">
-          <div class="stat-icon">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-              <polyline points="22 4 12 14.01 9 11.01"/>
-            </svg>
-          </div>
-          <p class="text-white/70 text-xs font-semibold uppercase tracking-wider mb-1">Completadas</p>
-          <p class="text-3xl font-bold tracking-tight">${citasCompletadas}</p>
-          <div class="flex items-center gap-1 mt-2 text-white/60 text-xs font-medium">
-            <span>Finalizadas</span>
-          </div>
+        <p class="text-white/70 text-xs font-semibold uppercase tracking-wider mb-1">Pacientes</p>
+        <p class="text-3xl font-bold tracking-tight">${listaPacientes.length}</p>
+        <div class="flex items-center gap-1 mt-2 text-white/60 text-xs font-medium">
+          <span>Listar pacientes</span>
         </div>
       </div>
 
-      <!-- Sección de Detalle Dinámica -->
-      <div class="dashboard-card animate-fade-in overflow-hidden">
-        <div class="flex justify-between items-center mb-5 border-b border-slate-100 dark:border-slate-800 pb-4">
-          <h2 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            ${detalleTitulo}
-          </h2>
-          <a href="${verTodoLink}" class="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1">
-            Ver todos
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-          </a>
+      <!-- Card Total Citas -->
+      <div id="tabTotalCitas" class="stat-card green cursor-pointer select-none transition-all duration-300 ${activeGreen}">
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
         </div>
-        
-        ${detalleHtml}
+        <p class="text-white/70 text-xs font-semibold uppercase tracking-wider mb-1">Total Citas</p>
+        <p class="text-3xl font-bold tracking-tight">${listaCitas.length}</p>
+        <div class="flex items-center gap-1 mt-2 text-white/60 text-xs font-medium">
+          <span>Historial completo</span>
+        </div>
       </div>
+
+      <!-- Card Citas Pendientes -->
+      <div id="tabCitasPendientes" class="stat-card yellow cursor-pointer select-none transition-all duration-300 ${activeYellow}">
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </div>
+        <p class="text-white/70 text-xs font-semibold uppercase tracking-wider mb-1">Citas Pendientes</p>
+        <p class="text-3xl font-bold tracking-tight">${citasPendientes}</p>
+        <div class="flex items-center gap-1 mt-2 text-white/60 text-xs font-medium">
+          <span>Por atender</span>
+        </div>
+      </div>
+
+      <!-- Card Citas Completadas -->
+      <div id="tabCitasCompletadas" class="stat-card purple cursor-pointer select-none transition-all duration-300 ${activePurple}">
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+        </div>
+        <p class="text-white/70 text-xs font-semibold uppercase tracking-wider mb-1">Completadas</p>
+        <p class="text-3xl font-bold tracking-tight">${citasCompletadas}</p>
+        <div class="flex items-center gap-1 mt-2 text-white/60 text-xs font-medium">
+          <span>Finalizadas</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección de Detalle Dinámica -->
+    <div class="dashboard-card animate-fade-in overflow-hidden mt-8">
+      <div class="flex justify-between items-center mb-5 border-b border-slate-100 dark:border-slate-800 pb-4">
+        <h2 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          ${detalleTitulo}
+        </h2>
+        <a href="${verTodoLink}" class="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1">
+          Ver todos
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </a>
+      </div>
+      
+      ${detalleHtml}
     </div>
   `;
 
