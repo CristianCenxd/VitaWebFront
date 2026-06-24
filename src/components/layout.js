@@ -6,15 +6,6 @@ export const createLayout = (content, currentPage) => {
       <!-- Sidebar backdrop for mobile -->
       <div id="sidebarBackdrop" class="fixed inset-0 bg-black/50 z-40 hidden"></div>
 
-      <!-- Sidebar Toggle (Mobile) -->
-      <button id="sidebarToggleBtn" class="sidebar-toggle" aria-label="Toggle sidebar">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="3" y1="6" x2="21" y2="6"></line>
-          <line x1="3" y1="12" x2="21" y2="12"></line>
-          <line x1="3" y1="18" x2="21" y2="18"></line>
-        </svg>
-      </button>
-
       <!-- Sidebar -->
       <aside id="sidebar" class="sidebar sidebar-open">
         <!-- Logo Area -->
@@ -75,6 +66,13 @@ export const createLayout = (content, currentPage) => {
         </div>
       </aside>
 
+      <!-- Sidebar Toggle Pill / Pull Tab (Mobile only) -->
+      <button id="sidebarToggleBtn" class="sidebar-pull-tab" aria-label="Open sidebar">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+
       <!-- Main Content -->
       <main id="mainContent" class="flex-1 overflow-auto bg-gradient-to-br from-slate-50 to-slate-100 transition-colors duration-200 main-content-push">
         <div id="pageContent" class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
@@ -82,6 +80,5 @@ export const createLayout = (content, currentPage) => {
         </div>
       </main>
     </div>
-
   `;
 };

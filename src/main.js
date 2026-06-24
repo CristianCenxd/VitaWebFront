@@ -68,6 +68,55 @@ function initSidebar() {
       }
     }
   })
+
+  // Soporte de gestos táctiles (Swipe) para dispositivos móviles
+  let touchStartX = 0
+  let touchStartY = 0
+  let touchEndX = 0
+  let touchEndY = 0
+
+  app.addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX
+    touchStartY = e.touches[0].clientY
+  }, { passive: true })
+
+  app.addEventListener('touchmove', (e) => {
+    touchEndX = e.touches[0].clientX
+    touchEndY = e.touches[0].clientY
+  }, { passive: true })
+
+  app.addEventListener('touchend', () => {
+    const diffX = touchEndX - touchStartX
+    const diffY = touchEndY - touchStartY
+
+    // Solo actuar si el deslizamiento es más horizontal que vertical
+    if (Math.abs(diffX) > Math.abs(diffY)) {
+      const sidebar = document.getElementById('sidebar')
+      const backdropEl = document.getElementById('sidebarBackdrop')
+      if (!sidebar) return
+
+      const isSidebarOpen = sidebar.classList.contains('open')
+
+      if (!isSidebarOpen) {
+        // Deslizar de izquierda a derecha desde el borde izquierdo (< 60px) para abrir
+        if (diffX > 75 && touchStartX < 60) {
+          sidebar.classList.add('open')
+          if (backdropEl) backdropEl.classList.remove('hidden')
+        }
+      } else {
+        // Deslizar de derecha a izquierda para cerrar
+        if (diffX < -75) {
+          sidebar.classList.remove('open')
+          if (backdropEl) backdropEl.classList.add('hidden')
+        }
+      }
+    }
+    // Reiniciar
+    touchStartX = 0
+    touchStartY = 0
+    touchEndX = 0
+    touchEndY = 0
+  }, { passive: true })
 }
 
 // Llamar después de cada navegación

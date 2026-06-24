@@ -168,7 +168,7 @@ async function renderizarConfiguracion() {
           </h2>
         </div>
         <div class="detail-section-body space-y-4">
-          <div class="flex items-center justify-between p-5 ${conectado ? 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-green-900/10 border-green-200/60 dark:border-green-800/40' : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200/80 dark:border-slate-700/50'} rounded-xl border transition-all duration-300">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 ${conectado ? 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-green-900/10 border-green-200/60 dark:border-green-800/40' : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200/80 dark:border-slate-700/50'} rounded-xl border transition-all duration-300">
             <div class="flex items-center gap-4">
               <div class="w-11 h-11 rounded-xl ${conectado ? 'bg-gradient-to-br from-green-400 to-green-600 shadow-lg shadow-green-500/20' : 'bg-slate-200 dark:bg-slate-700'} flex items-center justify-center flex-shrink-0 transition-all duration-300">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
