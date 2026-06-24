@@ -23,7 +23,7 @@ export const ConfiguracionPage = async () => {
     await renderizarConfiguracion();
   }, 0);
 
-  return createLayout(content, '/configuracion');
+  return content;
 };
 
 async function renderizarConfiguracion() {

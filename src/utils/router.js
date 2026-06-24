@@ -1,4 +1,4 @@
-// Sistema de rutas simple
+import { createLayout } from '../components/layout.js';
 
 export class Router {
   constructor() {
@@ -6,28 +6,54 @@ export class Router {
     this.currentPage = null;
   }
 
-  register(path, component) {
-    this.routes[path] = component;
+  register(path, component, requiresLayout = false) {
+    this.routes[path] = { component, requiresLayout };
   }
 
   async navigate(path) {
     const routePath = path.split('?')[0];
-    const component = this.routes[routePath];
-    if (!component) {
+    const route = this.routes[routePath];
+    if (!route) {
       console.error(`Ruta no encontrada: ${path}`);
       return;
     }
 
+    const { component, requiresLayout } = route;
     const app = document.getElementById('app');
 
-    // Renderizar el componente
+    // Obtener el HTML del componente
+    let pageHtml = '';
     if (typeof component === 'function') {
-      const html = await component();
-      app.innerHTML = html;
-      this.currentPage = path;
-      window.history.pushState({}, '', `#${path}`);
-      return html;
+      pageHtml = await component();
     }
+
+    if (requiresLayout) {
+      const pageContentEl = document.getElementById('pageContent');
+      if (pageContentEl) {
+        // El layout ya está renderizado. Solo actualizamos el contenido interno y el estado activo del sidebar
+        pageContentEl.innerHTML = pageHtml;
+
+        // Actualizar clase activa en el sidebar
+        document.querySelectorAll('.sidebar-item').forEach(item => {
+          const itemPage = item.getAttribute('data-page');
+          if (itemPage === routePath) {
+            item.classList.add('active');
+          } else {
+            item.classList.remove('active');
+          }
+        });
+      } else {
+        // El layout no está renderizado, lo renderizamos completo
+        app.innerHTML = createLayout(pageHtml, routePath);
+      }
+    } else {
+      // Página que no requiere layout (login, registro, etc.), renderizamos directamente en el app
+      app.innerHTML = pageHtml;
+    }
+
+    this.currentPage = path;
+    window.history.pushState({}, '', `#${path}`);
+    return pageHtml;
   }
 
   handlePopState() {

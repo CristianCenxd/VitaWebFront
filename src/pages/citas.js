@@ -26,7 +26,7 @@ export const CitasPage = async () => {
     await renderizarVista();
   }, 0);
 
-  return createLayout(content, '/citas');
+  return content;
 };
 
 let googleConectado = false;

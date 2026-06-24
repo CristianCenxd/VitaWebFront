@@ -18,7 +18,7 @@ export const DashboardPage = async () => {
     await renderizarDashboard();
   }, 0);
 
-  return createLayout(html, '/dashboard');
+  return html;
 };
 
 async function renderizarDashboard() {

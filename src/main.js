@@ -13,10 +13,10 @@ router.register('/', LoginPage)
 router.register('/login', LoginPage)
 router.register('/forgot-password', ForgotPasswordPage)
 router.register('/reset-password', ResetPasswordPage)
-router.register('/dashboard', DashboardPage)
-router.register('/pacientes', PacientesPage)
-router.register('/citas', CitasPage)
-router.register('/configuracion', ConfiguracionPage)
+router.register('/dashboard', DashboardPage, true)
+router.register('/pacientes', PacientesPage, true)
+router.register('/citas', CitasPage, true)
+router.register('/configuracion', ConfiguracionPage, true)
 
 // Inicializar aplicación
 function init() {

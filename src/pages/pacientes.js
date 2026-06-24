@@ -31,7 +31,7 @@ export const PacientesPage = async () => {
     renderizarVista();
   }, 0);
 
-  return createLayout(content, '/pacientes');
+  return content;
 };
 
 async function renderizarVista() {
