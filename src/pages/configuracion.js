@@ -168,53 +168,6 @@ export const ConfiguracionPage = async () => {
           </div>
         </div>
 
-        <!-- Cambiar Contraseña -->
-        <div class="detail-section">
-          <div class="detail-section-header">
-            <h2>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-              </svg>
-              Cambiar Contraseña
-            </h2>
-          </div>
-          <div class="detail-section-body" id="cuerpoCambiarContrasena">
-            <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">Actualiza tu contraseña de acceso.</p>
-            <button id="btnCambiarContrasena" class="btn-secondary w-full justify-center">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-              </svg>
-              Cambiar Contraseña
-            </button>
-            <div id="verificandoToken" class="hidden text-center py-4">
-              <div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-              <p class="text-sm text-slate-500">Verificando sesión...</p>
-            </div>
-            <form id="formCambiarContrasena" class="hidden space-y-4">
-              <div class="form-group">
-                <label class="form-label" for="nuevaPass">Nueva contraseña</label>
-                <input type="password" id="nuevaPass" required minlength="6" placeholder="Mínimo 6 caracteres" class="input-field" autocomplete="new-password" />
-              </div>
-              <div class="form-group">
-                <label class="form-label" for="confirmarPass">Confirmar nueva contraseña</label>
-                <input type="password" id="confirmarPass" required minlength="6" placeholder="Repite la contraseña" class="input-field" autocomplete="new-password" />
-              </div>
-              <div class="flex gap-3">
-                <button type="submit" class="btn-success flex-1 justify-center">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  Guardar Contraseña
-                </button>
-                <button type="button" id="cancelarCambiarContrasena" class="btn-secondary">Cancelar</button>
-              </div>
-            </form>
-            <div id="mensajeCambioContrasena" class="hidden mt-3"></div>
-          </div>
-        </div>
-
         <!-- Cerrar Sesión -->
         <div class="detail-section border-red-200 dark:border-red-900/40">
           <div class="detail-section-header">
