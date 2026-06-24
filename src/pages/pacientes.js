@@ -455,15 +455,15 @@ async function renderizarDetalle(contenedor) {
             const canceladasCitas = citas.filter(c => (c.estado || 'pendiente').toLowerCase() === 'cancelada');
 
             const renderCitaRow = (c) => `
-              <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800">
-                <div class="flex items-center gap-3">
-                  <div class="w-2.5 h-2.5 rounded-full ${(c.estado || 'pendiente').toLowerCase() === 'pendiente' ? 'bg-yellow-400' : (c.estado || 'pendiente').toLowerCase() === 'completada' ? 'bg-green-400' : 'bg-red-400'}"></div>
-                  <div>
-                    <p class="font-semibold text-slate-900 dark:text-white text-sm">${formatDateTime(c.fecha_hora)}</p>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">${c.motivo}</p>
-                  </div>
+              <div class="flex flex-col gap-2 p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-2.5 h-2.5 rounded-full ${(c.estado || 'pendiente').toLowerCase() === 'pendiente' ? 'bg-yellow-400' : (c.estado || 'pendiente').toLowerCase() === 'completada' ? 'bg-green-400' : 'bg-red-400'} flex-shrink-0"></div>
+                  <p class="font-semibold text-slate-900 dark:text-white text-xs sm:text-sm">${formatDateTime(c.fecha_hora)}</p>
                 </div>
-                <span class="badge-status ${getEstadoStyle(c.estado)} text-xs">${getEstadoLabel(c.estado)}</span>
+                <div class="flex items-center justify-between gap-2 pl-5">
+                  <p class="text-xs text-slate-500 dark:text-slate-400">${c.motivo}</p>
+                  <span class="badge-status ${getEstadoStyle(c.estado)} text-xs flex-shrink-0">${getEstadoLabel(c.estado)}</span>
+                </div>
               </div>
             `;
 
