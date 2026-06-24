@@ -209,7 +209,7 @@ async function renderizarDashboard() {
     </div>
 
     <!-- Tarjetas Estadísticas Interactivas -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
       <!-- Card Pacientes -->
       <div id="tabPacientes" class="stat-card blue cursor-pointer select-none transition-all duration-300 ${activeBlue}">
         <div class="stat-icon">
@@ -278,10 +278,10 @@ async function renderizarDashboard() {
     <!-- Sección de Detalle Dinámica -->
     <div class="dashboard-card animate-fade-in overflow-hidden mt-8">
       <div class="flex justify-between items-center mb-5 border-b border-slate-100 dark:border-slate-800 pb-4">
-        <h2 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+        <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
           ${detalleTitulo}
         </h2>
-        <a href="${verTodoLink}" class="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1">
+        <a href="${verTodoLink}" class="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1">
           Ver todos
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="9 18 15 12 9 6"></polyline>

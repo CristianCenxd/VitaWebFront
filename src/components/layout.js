@@ -18,7 +18,7 @@ export const createLayout = (content, currentPage) => {
         </div>
 
         <!-- Navigation -->
-        <nav class="mt-6 space-y-1 px-2">
+        <nav class="mt-6 space-y-1 px-2 flex-1 overflow-y-auto">
           <a href="#/dashboard" class="sidebar-item ${isActive('/dashboard')}" data-page="/dashboard">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="3" width="7" height="7" rx="1"></rect>
@@ -55,7 +55,7 @@ export const createLayout = (content, currentPage) => {
         </nav>
 
         <!-- Bottom Section -->
-        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10">
+        <div class="p-4 border-t border-white/10 mt-auto">
           <a href="#/configuracion" class="sidebar-item ${isActive('/configuracion')}" data-page="/configuracion">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="3"></circle>
