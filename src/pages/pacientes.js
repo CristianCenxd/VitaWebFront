@@ -468,7 +468,7 @@ async function renderizarDetalle(contenedor) {
             `;
 
             return `
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 <!-- Próximas -->
                 <div class="space-y-3">
                   <h3 class="font-semibold text-sm text-slate-700 dark:text-slate-300 flex items-center gap-1.5 pb-2 border-b border-slate-100 dark:border-slate-800">
@@ -526,8 +526,8 @@ async function renderizarDetalle(contenedor) {
         </div>
         <div class="detail-section-body">
           ${progreso.length > 1 ? `
-            <div class="mb-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 p-4">
-              <canvas id="progresoChart" height="250"></canvas>
+            <div class="mb-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 p-4 h-[280px] sm:h-[320px] md:h-[380px]">
+              <canvas id="progresoChart"></canvas>
             </div>
           ` : ''}
           ${progreso.length === 0 ? '<p class="text-slate-500 text-sm py-4 text-center">Sin seguimiento registrado</p>' : `
@@ -693,7 +693,7 @@ async function renderizarDetalle(contenedor) {
         data: { labels, datasets },
         options: {
           responsive: true,
-          maintainAspectRatio: true,
+          maintainAspectRatio: false,
           plugins: {
             legend: {
               labels: { color: textColor, font: { size: 12 }, boxWidth: 14, padding: 16 }
