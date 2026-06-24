@@ -1,5 +1,5 @@
 import { createLayout } from '../components/layout.js';
-import { getGoogleAuthUrl, getGoogleStatus, actualizarNutriologo } from '../utils/api.js';
+import { getGoogleAuthUrl, getGoogleStatus, actualizarNutriologo, verificarToken, restablecerContrasena } from '../utils/api.js';
 import { validators, validarFormulario } from '../utils/validation.js';
 import { router } from '../utils/router.js';
 
@@ -138,6 +138,53 @@ export const ConfiguracionPage = async () => {
             <button id="googleCalendarBtn" class="btn-primary w-full justify-center">
               ${conectado ? 'Desconectar Google Calendar' : 'Conectar Google Calendar'}
             </button>
+          </div>
+        </div>
+
+        <!-- Cambiar Contraseña -->
+        <div class="detail-section">
+          <div class="detail-section-header">
+            <h2>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+              Cambiar Contraseña
+            </h2>
+          </div>
+          <div class="detail-section-body" id="cuerpoCambiarContrasena">
+            <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">Actualiza tu contraseña de acceso.</p>
+            <button id="btnCambiarContrasena" class="btn-secondary w-full justify-center">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+              Cambiar Contraseña
+            </button>
+            <div id="verificandoToken" class="hidden text-center py-4">
+              <div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+              <p class="text-sm text-slate-500">Verificando sesión...</p>
+            </div>
+            <form id="formCambiarContrasena" class="hidden space-y-4">
+              <div class="form-group">
+                <label class="form-label" for="nuevaPass">Nueva contraseña</label>
+                <input type="password" id="nuevaPass" required minlength="6" placeholder="Mínimo 6 caracteres" class="input-field" autocomplete="new-password" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="confirmarPass">Confirmar nueva contraseña</label>
+                <input type="password" id="confirmarPass" required minlength="6" placeholder="Repite la contraseña" class="input-field" autocomplete="new-password" />
+              </div>
+              <div class="flex gap-3">
+                <button type="submit" class="btn-success flex-1 justify-center">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  Guardar Contraseña
+                </button>
+                <button type="button" id="cancelarCambiarContrasena" class="btn-secondary">Cancelar</button>
+              </div>
+            </form>
+            <div id="mensajeCambioContrasena" class="hidden mt-3"></div>
           </div>
         </div>
 
@@ -301,6 +348,85 @@ export const ConfiguracionPage = async () => {
             </div>
           `;
         };
+      });
+    }
+
+    // Cambiar contraseña
+    const btnCambiar = document.getElementById('btnCambiarContrasena');
+    const cuerpoPass = document.getElementById('cuerpoCambiarContrasena');
+    const verificandoDiv = document.getElementById('verificandoToken');
+    const formPass = document.getElementById('formCambiarContrasena');
+    const msgDiv = document.getElementById('mensajeCambioContrasena');
+
+    if (btnCambiar) {
+      btnCambiar.addEventListener('click', async () => {
+        btnCambiar.classList.add('hidden');
+        verificandoDiv.classList.remove('hidden');
+        msgDiv.classList.add('hidden');
+
+        try {
+          const userToken = localStorage.getItem('token');
+          if (!userToken) throw new Error('No hay sesión activa');
+          await verificarToken(userToken);
+          verificandoDiv.classList.add('hidden');
+          formPass.classList.remove('hidden');
+        } catch (err) {
+          btnCambiar.classList.remove('hidden');
+          verificandoDiv.classList.add('hidden');
+          msgDiv.className = 'mt-3 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm';
+          msgDiv.textContent = err.message || 'Error al verificar la sesión';
+          msgDiv.classList.remove('hidden');
+        }
+      });
+    }
+
+    if (formPass) {
+      formPass.onsubmit = async (e) => {
+        e.preventDefault();
+        msgDiv.classList.add('hidden');
+
+        const nueva = document.getElementById('nuevaPass').value;
+        const confirmar = document.getElementById('confirmarPass').value;
+
+        if (nueva.length < 6) {
+          msgDiv.className = 'mt-3 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm';
+          msgDiv.textContent = 'La contraseña debe tener al menos 6 caracteres';
+          msgDiv.classList.remove('hidden');
+          return;
+        }
+        if (nueva !== confirmar) {
+          msgDiv.className = 'mt-3 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm';
+          msgDiv.textContent = 'Las contraseñas no coinciden';
+          msgDiv.classList.remove('hidden');
+          return;
+        }
+
+        try {
+          const userToken = localStorage.getItem('token');
+          await restablecerContrasena(userToken, nueva);
+          msgDiv.className = 'mt-3 p-3 bg-green-50 border border-green-200 text-green-700 rounded-xl text-sm';
+          msgDiv.textContent = 'Contraseña actualizada exitosamente';
+          msgDiv.classList.remove('hidden');
+          formPass.classList.add('hidden');
+          btnCambiar.classList.remove('hidden');
+          document.getElementById('nuevaPass').value = '';
+          document.getElementById('confirmarPass').value = '';
+        } catch (err) {
+          msgDiv.className = 'mt-3 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm';
+          msgDiv.textContent = err.message || 'Error al actualizar la contraseña';
+          msgDiv.classList.remove('hidden');
+        }
+      };
+    }
+
+    const cancelarPass = document.getElementById('cancelarCambiarContrasena');
+    if (cancelarPass) {
+      cancelarPass.addEventListener('click', () => {
+        formPass.classList.add('hidden');
+        btnCambiar.classList.remove('hidden');
+        msgDiv.classList.add('hidden');
+        document.getElementById('nuevaPass').value = '';
+        document.getElementById('confirmarPass').value = '';
       });
     }
 

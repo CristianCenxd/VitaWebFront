@@ -1,7 +1,7 @@
 // Variable para alternar entre Localhost y el Host de Producción de la API
-const USAR_LOCALHOST = true;
+const USAR_LOCALHOST = false; // Cambiar a true para usar localhost, false para producción
 
-const URL_LOCALHOST = 'http://192.168.0.247:3000';
+const URL_LOCALHOST = 'http://192.168.1.71:3000';
 const URL_PRODUCCION = 'https://vitaweb.onrender.com'; // Reemplazar con el host de producción real de la API
 
 export const API_BASE_URL = USAR_LOCALHOST ? URL_LOCALHOST : URL_PRODUCCION;
@@ -14,6 +14,23 @@ const getHeaders = () => {
     ...(token ? { 'Authorization': `Bearer ${token}` } : {})
   };
 };
+
+const mensajesErrorHTTP = {
+  400: 'Los datos enviados no son válidos. Revisa la información e intenta de nuevo.',
+  401: 'Tu sesión ha expirado o no tienes autorización. Inicia sesión nuevamente.',
+  403: 'No tienes permiso para realizar esta acción.',
+  404: 'El recurso solicitado no se encontró.',
+  409: 'Ya existe un registro con esos datos. Verifica la información.',
+  429: 'Has hecho demasiadas solicitudes. Espera un momento y vuelve a intentar.',
+  500: 'Ocurrió un error en el servidor. Intenta de nuevo más tarde.',
+  502: 'El servidor no está disponible temporalmente. Intenta de nuevo en unos segundos.',
+  503: 'El servicio no está disponible en este momento. Intenta más tarde.',
+};
+
+function mensajeAmigable(status, backendMsg) {
+  if (backendMsg && backendMsg.length > 5 && backendMsg.length < 120) return backendMsg;
+  return mensajesErrorHTTP[status] || `Error inesperado (código ${status}). Intenta de nuevo.`;
+}
 
 // Helper genérico para peticiones HTTP
 async function apiFetch(endpoint, options = {}) {
@@ -29,7 +46,7 @@ async function apiFetch(endpoint, options = {}) {
   const response = await fetch(url, config);
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || `Error en la petición: ${response.status}`);
+    throw new Error(mensajeAmigable(response.status, errorData.message));
   }
 
   if (response.status === 204) {
@@ -68,6 +85,13 @@ export const solicitarRecuperacion = async (email) => {
   return apiFetch('/api/auth/forgot-password', {
     method: 'POST',
     body: JSON.stringify({ email })
+  });
+};
+
+export const verificarToken = async (token) => {
+  return apiFetch('/api/auth/verify-token', {
+    method: 'POST',
+    body: JSON.stringify({ token })
   });
 };
 

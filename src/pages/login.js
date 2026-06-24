@@ -115,7 +115,7 @@ export const LoginPage = async () => {
             </div>
 
             <!-- Forgot Password Link -->
-            <div class="text-right -mt-2">
+            <div id="forgotLink" class="text-right -mt-2">
               <a href="#/forgot-password" class="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors">
                 ¿Olvidó su contraseña?
               </a>
@@ -137,6 +137,7 @@ export const LoginPage = async () => {
     const tabRegister = document.getElementById('tabRegister');
     const registerFields = document.getElementById('registerFields');
     const submitText = document.getElementById('submitText');
+    const forgotLink = document.getElementById('forgotLink');
     const authForm = document.getElementById('authForm');
     
     const nombreInput = document.getElementById('nombreCompleto');
@@ -160,6 +161,7 @@ export const LoginPage = async () => {
         tabLogin.className = "flex-1 text-center py-2 text-sm font-semibold rounded-lg bg-white text-slate-800 shadow-sm transition-all";
         tabRegister.className = "flex-1 text-center py-2 text-sm font-semibold rounded-lg text-slate-500 hover:text-slate-800 transition-all";
         registerFields.classList.add('hidden');
+        forgotLink.classList.remove('hidden');
         
         nombreInput.removeAttribute('required');
         telefonoInput.removeAttribute('required');
@@ -170,6 +172,7 @@ export const LoginPage = async () => {
         tabRegister.className = "flex-1 text-center py-2 text-sm font-semibold rounded-lg bg-white text-slate-800 shadow-sm transition-all";
         tabLogin.className = "flex-1 text-center py-2 text-sm font-semibold rounded-lg text-slate-500 hover:text-slate-800 transition-all";
         registerFields.classList.remove('hidden');
+        forgotLink.classList.add('hidden');
         
         nombreInput.setAttribute('required', 'true');
         telefonoInput.setAttribute('required', 'true');

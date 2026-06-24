@@ -1,4 +1,4 @@
-import { solicitarRecuperacion, restablecerContrasena } from '../utils/api.js';
+import { solicitarRecuperacion, restablecerContrasena, verificarToken } from '../utils/api.js';
 import { validators, validarFormulario, limpiarValidaciones } from '../utils/validation.js';
 import { router } from '../utils/router.js';
 
@@ -256,8 +256,13 @@ export const ForgotPasswordPage = async () => {
 
       if (!valido) return;
 
-      irAPaso(3);
-      showSuccess('Código verificado. Ahora puedes crear tu nueva contraseña.');
+      try {
+        await verificarToken(codigo);
+        irAPaso(3);
+        showSuccess('Código verificado. Ahora puedes crear tu nueva contraseña.');
+      } catch (err) {
+        showError(err.message || 'El código ingresado no es válido o ha expirado.');
+      }
     };
 
     // Step 3: New password form
