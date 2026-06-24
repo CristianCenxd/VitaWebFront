@@ -19,6 +19,14 @@ export class Router {
     }
 
     const { component, requiresLayout } = route;
+
+    // Redirigir a la raíz si no se detecta un usuario registrado y la ruta requiere layout
+    if (requiresLayout && (!localStorage.getItem('token') || !localStorage.getItem('nutriologo_actual'))) {
+      console.warn('Usuario no autenticado, redirigiendo a la raíz');
+      window.location.hash = '/';
+      return;
+    }
+
     const app = document.getElementById('app');
 
     // Obtener el HTML del componente
