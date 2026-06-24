@@ -19,7 +19,6 @@ export class Router {
     }
 
     const app = document.getElementById('app');
-    app.innerHTML = '';
 
     // Renderizar el componente
     if (typeof component === 'function') {

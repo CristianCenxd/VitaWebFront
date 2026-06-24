@@ -4,6 +4,32 @@ import { validators, validarFormulario } from '../utils/validation.js';
 import { router } from '../utils/router.js';
 
 export const ConfiguracionPage = async () => {
+  const content = `
+    <div id="contenidoConfiguracion">
+      <div class="space-y-8 animate-slide-in">
+        <div class="page-header">
+          <h1>Configuración</h1>
+          <p>Ajusta las preferencias de la aplicación</p>
+        </div>
+        <div class="text-center py-16">
+          <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p class="text-slate-500 font-medium">Cargando configuración...</p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  setTimeout(async () => {
+    await renderizarConfiguracion();
+  }, 0);
+
+  return createLayout(content, '/configuracion');
+};
+
+async function renderizarConfiguracion() {
+  const contenedor = document.getElementById('contenidoConfiguracion');
+  if (!contenedor) return;
+
   const isDark = localStorage.getItem('theme') === 'dark';
   let googleStatus = null;
   let nutriologo = JSON.parse(localStorage.getItem('nutriologo_actual')) || {};
@@ -44,7 +70,7 @@ export const ConfiguracionPage = async () => {
   const conectado = googleStatus?.conectado === true;
   const n = nutriologo;
 
-  const html = `
+  contenedor.innerHTML = `
     <div class="space-y-8 animate-slide-in">
       <div class="page-header">
         <h1>Configuración</h1>
@@ -57,7 +83,7 @@ export const ConfiguracionPage = async () => {
           <div class="detail-section-header">
             <h2>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <path d="M20 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                 <circle cx="12" cy="7" r="4"></circle>
               </svg>
               Datos del Nutriólogo
@@ -196,271 +222,186 @@ export const ConfiguracionPage = async () => {
     </div>
   `;
 
-  setTimeout(() => {
-    const nutriologoData = JSON.parse(localStorage.getItem('nutriologo_actual')) || {};
-
-    // Editar perfil
-    const editarBtn = document.getElementById('editarPerfilBtn');
-    if (editarBtn) {
-      editarBtn.addEventListener('click', () => {
-        const cuerpo = document.getElementById('cuerpoPerfil');
-        const n = nutriologoData;
-        cuerpo.innerHTML = `
-          <form id="formPerfil" class="space-y-5">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div class="form-group">
-                <label class="form-label" for="editNombre">Nombre Completo</label>
-                <input type="text" id="editNombre" value="${n.nombreCompleto || n.nombre || ''}" class="input-field" placeholder="Tu nombre completo" />
-              </div>
-              <div class="form-group">
-                <label class="form-label" for="editEmail">Correo Electrónico</label>
-                <input type="email" id="editEmail" value="${n.email || ''}" class="input-field" placeholder="tu@email.com" />
-              </div>
-              <div class="form-group">
-                <label class="form-label" for="editTelefono">Teléfono</label>
-                <input type="tel" id="editTelefono" value="${n.telefono || ''}" maxlength="10" class="input-field" placeholder="10 dígitos" />
-              </div>
-              <div class="form-group">
-                <label class="form-label" for="editCedula">Cédula Profesional</label>
-                <input type="text" id="editCedula" value="${n.cedula || ''}" maxlength="8" class="input-field" placeholder="7 u 8 dígitos" />
-              </div>
+  // Editar perfil
+  const editarBtn = document.getElementById('editarPerfilBtn');
+  if (editarBtn) {
+    editarBtn.addEventListener('click', () => {
+      const cuerpo = document.getElementById('cuerpoPerfil');
+      const n = nutriologo;
+      cuerpo.innerHTML = `
+        <form id="formPerfil" class="space-y-5">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="form-group">
+              <label class="form-label" for="editNombre">Nombre Completo</label>
+              <input type="text" id="editNombre" value="${n.nombreCompleto || n.nombre || ''}" class="input-field" placeholder="Tu nombre completo" />
             </div>
-            <div class="flex gap-3 pt-2">
-              <button type="submit" class="btn-success">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-                Guardar Cambios
-              </button>
-              <button type="button" id="cancelarEditarPerfil" class="btn-secondary">Cancelar</button>
+            <div class="form-group">
+              <label class="form-label" for="editEmail">Correo Electrónico</label>
+              <input type="email" id="editEmail" value="${n.email || ''}" class="input-field" placeholder="tu@email.com" />
             </div>
-          </form>
-        `;
-
-        const telInput = document.getElementById('editTelefono');
-        if (telInput) {
-          telInput.addEventListener('input', (e) => {
-            e.target.value = e.target.value.replace(/\D/g, '');
-          });
-        }
-
-        const cedulaInput = document.getElementById('editCedula');
-        if (cedulaInput) {
-          cedulaInput.addEventListener('input', (e) => {
-            e.target.value = e.target.value.replace(/\D/g, '');
-          });
-        }
-
-        document.getElementById('formPerfil').onsubmit = async (e) => {
-          e.preventDefault();
-          const nombre = document.getElementById('editNombre').value;
-          const email = document.getElementById('editEmail').value;
-          const telefono = document.getElementById('editTelefono').value;
-          const cedula = document.getElementById('editCedula').value;
-
-          const valido = validarFormulario([
-            { campo: 'editNombre', nombre: 'Nombre', valor: nombre, validacion: validators.soloLetras },
-            { campo: 'editEmail', nombre: 'Correo', valor: email, validacion: validators.email },
-            { campo: 'editTelefono', nombre: 'Teléfono', valor: telefono, validacion: validators.telefono },
-            { campo: 'editCedula', nombre: 'Cédula', valor: cedula, validacion: validators.cedula }
-          ]);
-          if (!valido) return;
-
-          const datosActualizados = {
-            ...nutriologoData,
-            nombreCompleto: nombre,
-            email,
-            telefono,
-            cedula
-          };
-
-          localStorage.setItem('nutriologo_actual', JSON.stringify(datosActualizados));
-          localStorage.setItem(`nutriologo_info_${email.trim().toLowerCase()}`, JSON.stringify({
-            telefono,
-            cedula
-          }));
-
-          try {
-            await actualizarNutriologo(datosActualizados);
-          } catch (err) {
-            console.warn('No se pudo actualizar en el servidor:', err.message);
-          }
-
-          cuerpo.innerHTML = `
-            <div class="info-grid">
-              <div class="info-item">
-                <label>Nombre Completo</label>
-                <p>${nombre}</p>
-              </div>
-              <div class="info-item">
-                <label>Correo Electrónico</label>
-                <p>${email}</p>
-              </div>
-              <div class="info-item">
-                <label>Teléfono</label>
-                <p>${telefono}</p>
-              </div>
-              <div class="info-item">
-                <label>Cédula Profesional</label>
-                <p>${cedula}</p>
-              </div>
+            <div class="form-group">
+              <label class="form-label" for="editTelefono">Teléfono</label>
+              <input type="tel" id="editTelefono" value="${n.telefono || ''}" maxlength="10" class="input-field" placeholder="10 dígitos" />
             </div>
-          `;
-          editarBtn.classList.remove('hidden');
-        };
-
-        document.getElementById('cancelarEditarPerfil').onclick = () => {
-          const n = JSON.parse(localStorage.getItem('nutriologo_actual')) || {};
-          cuerpo.innerHTML = `
-            <div class="info-grid">
-              <div class="info-item">
-                <label>Nombre Completo</label>
-                <p>${n.nombreCompleto || n.nombre || '—'}</p>
-              </div>
-              <div class="info-item">
-                <label>Correo Electrónico</label>
-                <p>${n.email || '—'}</p>
-              </div>
-              <div class="info-item">
-                <label>Teléfono</label>
-                <p>${n.telefono || '—'}</p>
-              </div>
-              <div class="info-item">
-                <label>Cédula Profesional</label>
-                <p>${n.cedula || '—'}</p>
-              </div>
+            <div class="form-group">
+              <label class="form-label" for="editCedula">Cédula Profesional</label>
+              <input type="text" id="editCedula" value="${n.cedula || ''}" maxlength="8" class="input-field" placeholder="7 u 8 dígitos" />
             </div>
-          `;
-        };
-      });
-    }
+          </div>
+          <div class="flex gap-3 pt-2">
+            <button type="submit" class="btn-success">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              Guardar Cambios
+            </button>
+            <button type="button" id="cancelarEditarPerfil" class="btn-secondary">Cancelar</button>
+          </div>
+        </form>
+      `;
 
-    // Cambiar contraseña
-    const btnCambiar = document.getElementById('btnCambiarContrasena');
-    const cuerpoPass = document.getElementById('cuerpoCambiarContrasena');
-    const verificandoDiv = document.getElementById('verificandoToken');
-    const formPass = document.getElementById('formCambiarContrasena');
-    const msgDiv = document.getElementById('mensajeCambioContrasena');
+      const telInput = document.getElementById('editTelefono');
+      if (telInput) {
+        telInput.addEventListener('input', (e) => {
+          e.target.value = e.target.value.replace(/\D/g, '');
+        });
+      }
 
-    if (btnCambiar) {
-      btnCambiar.addEventListener('click', async () => {
-        btnCambiar.classList.add('hidden');
-        verificandoDiv.classList.remove('hidden');
-        msgDiv.classList.add('hidden');
+      const cedulaInput = document.getElementById('editCedula');
+      if (cedulaInput) {
+        cedulaInput.addEventListener('input', (e) => {
+          e.target.value = e.target.value.replace(/\D/g, '');
+        });
+      }
 
-        try {
-          const userToken = localStorage.getItem('token');
-          if (!userToken) throw new Error('No hay sesión activa');
-          await verificarToken(userToken);
-          verificandoDiv.classList.add('hidden');
-          formPass.classList.remove('hidden');
-        } catch (err) {
-          btnCambiar.classList.remove('hidden');
-          verificandoDiv.classList.add('hidden');
-          msgDiv.className = 'mt-3 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm';
-          msgDiv.textContent = err.message || 'Error al verificar la sesión';
-          msgDiv.classList.remove('hidden');
-        }
-      });
-    }
-
-    if (formPass) {
-      formPass.onsubmit = async (e) => {
+      document.getElementById('formPerfil').onsubmit = async (e) => {
         e.preventDefault();
-        msgDiv.classList.add('hidden');
+        const nombre = document.getElementById('editNombre').value;
+        const email = document.getElementById('editEmail').value;
+        const telefono = document.getElementById('editTelefono').value;
+        const cedula = document.getElementById('editCedula').value;
 
-        const nueva = document.getElementById('nuevaPass').value;
-        const confirmar = document.getElementById('confirmarPass').value;
+        const valido = validarFormulario([
+          { campo: 'editNombre', nombre: 'Nombre', valor: nombre, validacion: validators.soloLetras },
+          { campo: 'editEmail', nombre: 'Correo', valor: email, validacion: validators.email },
+          { campo: 'editTelefono', nombre: 'Teléfono', valor: telefono, validacion: validators.telefono },
+          { campo: 'editCedula', nombre: 'Cédula', valor: cedula, validacion: validators.cedula }
+        ]);
+        if (!valido) return;
 
-        if (nueva.length < 6) {
-          msgDiv.className = 'mt-3 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm';
-          msgDiv.textContent = 'La contraseña debe tener al menos 6 caracteres';
-          msgDiv.classList.remove('hidden');
-          return;
-        }
-        if (nueva !== confirmar) {
-          msgDiv.className = 'mt-3 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm';
-          msgDiv.textContent = 'Las contraseñas no coinciden';
-          msgDiv.classList.remove('hidden');
-          return;
-        }
+        const datosActualizados = {
+          ...nutriologo,
+          nombreCompleto: nombre,
+          email,
+          telefono,
+          cedula
+        };
+
+        localStorage.setItem('nutriologo_actual', JSON.stringify(datosActualizados));
+        localStorage.setItem(`nutriologo_info_${email.trim().toLowerCase()}`, JSON.stringify({
+          telefono,
+          cedula
+        }));
 
         try {
-          const userToken = localStorage.getItem('token');
-          await restablecerContrasena(userToken, nueva);
-          msgDiv.className = 'mt-3 p-3 bg-green-50 border border-green-200 text-green-700 rounded-xl text-sm';
-          msgDiv.textContent = 'Contraseña actualizada exitosamente';
-          msgDiv.classList.remove('hidden');
-          formPass.classList.add('hidden');
-          btnCambiar.classList.remove('hidden');
-          document.getElementById('nuevaPass').value = '';
-          document.getElementById('confirmarPass').value = '';
+          await actualizarNutriologo(datosActualizados);
         } catch (err) {
-          msgDiv.className = 'mt-3 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm';
-          msgDiv.textContent = err.message || 'Error al actualizar la contraseña';
-          msgDiv.classList.remove('hidden');
+          console.warn('No se pudo actualizar en el servidor:', err.message);
         }
+
+        cuerpo.innerHTML = `
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Nombre Completo</label>
+              <p>${nombre}</p>
+            </div>
+            <div class="info-item">
+              <label>Correo Electrónico</label>
+              <p>${email}</p>
+            </div>
+            <div class="info-item">
+              <label>Teléfono</label>
+              <p>${telefono}</p>
+            </div>
+            <div class="info-item">
+              <label>Cédula Profesional</label>
+              <p>${cedula}</p>
+            </div>
+          </div>
+        `;
+        editarBtn.classList.remove('hidden');
       };
-    }
 
-    const cancelarPass = document.getElementById('cancelarCambiarContrasena');
-    if (cancelarPass) {
-      cancelarPass.addEventListener('click', () => {
-        formPass.classList.add('hidden');
-        btnCambiar.classList.remove('hidden');
-        msgDiv.classList.add('hidden');
-        document.getElementById('nuevaPass').value = '';
-        document.getElementById('confirmarPass').value = '';
-      });
-    }
+      document.getElementById('cancelarEditarPerfil').onclick = () => {
+        const n = JSON.parse(localStorage.getItem('nutriologo_actual')) || {};
+        cuerpo.innerHTML = `
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Nombre Completo</label>
+              <p>${n.nombreCompleto || n.nombre || '—'}</p>
+            </div>
+            <div class="info-item">
+              <label>Correo Electrónico</label>
+              <p>${n.email || '—'}</p>
+            </div>
+            <div class="info-item">
+              <label>Teléfono</label>
+              <p>${n.telefono || '—'}</p>
+            </div>
+            <div class="info-item">
+              <label>Cédula Profesional</label>
+              <p>${n.cedula || '—'}</p>
+            </div>
+          </div>
+        `;
+      };
+    });
+  }
 
-    // Dark mode toggle
-    const toggle = document.getElementById('darkModeToggle');
-    if (toggle) {
-      toggle.addEventListener('change', (e) => {
-        if (e.target.checked) {
-          document.documentElement.classList.add('dark');
-          localStorage.setItem('theme', 'dark');
+  // Dark mode toggle
+  const toggle = document.getElementById('darkModeToggle');
+  if (toggle) {
+    toggle.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+      }
+    });
+  }
+
+  // Google Calendar
+  const googleBtn = document.getElementById('googleCalendarBtn');
+  if (googleBtn) {
+    googleBtn.addEventListener('click', async () => {
+      if (conectado) return;
+      try {
+        const res = await getGoogleAuthUrl();
+        if (res?.url) {
+          window.location.href = res.url;
+        } else if (res?.authUrl) {
+          window.location.href = res.authUrl;
         } else {
-          document.documentElement.classList.remove('dark');
-          localStorage.setItem('theme', 'light');
+          alert('Error al obtener la URL de autenticación de Google');
         }
-      });
-    }
+      } catch (err) {
+        alert('Error al conectar con Google Calendar: ' + err.message);
+      }
+    });
+  }
 
-    // Google Calendar
-    const googleBtn = document.getElementById('googleCalendarBtn');
-    if (googleBtn) {
-      googleBtn.addEventListener('click', async () => {
-        if (conectado) return;
-        try {
-          const res = await getGoogleAuthUrl();
-          if (res?.url) {
-            window.location.href = res.url;
-          } else if (res?.authUrl) {
-            window.location.href = res.authUrl;
-          } else {
-            alert('Error al obtener la URL de autenticación de Google');
-          }
-        } catch (err) {
-          alert('Error al conectar con Google Calendar: ' + err.message);
-        }
-      });
-    }
-
-    // Cerrar sesión
-    const cerrarBtn = document.getElementById('cerrarSesionBtn');
-    if (cerrarBtn) {
-      cerrarBtn.addEventListener('click', () => {
-        if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('nutriologo_actual');
-          document.documentElement.classList.remove('dark');
-          router.navigate('/login');
-        }
-      });
-    }
-  }, 0);
-
-  return createLayout(html, '/configuracion');
-};
+  // Cerrar sesión
+  const cerrarBtn = document.getElementById('cerrarSesionBtn');
+  if (cerrarBtn) {
+    cerrarBtn.addEventListener('click', () => {
+      if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('nutriologo_actual');
+        document.documentElement.classList.remove('dark');
+        router.navigate('/login');
+      }
+    });
+  }
+}
