@@ -295,6 +295,10 @@ export const ConfiguracionPage = async () => {
           };
 
           localStorage.setItem('nutriologo_actual', JSON.stringify(datosActualizados));
+          localStorage.setItem(`nutriologo_info_${email.trim().toLowerCase()}`, JSON.stringify({
+            telefono,
+            cedula
+          }));
 
           try {
             await actualizarNutriologo(datosActualizados);

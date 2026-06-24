@@ -206,7 +206,22 @@ export const LoginPage = async () => {
           ]);
           if (!valido) return;
 
+          const emailKey = emailInput.value.trim().toLowerCase();
           await loginNutriologo(emailInput.value, passwordInput.value);
+
+          // Si el servidor no devolvió teléfono y cédula, recuperarlos de localStorage
+          const savedInfo = localStorage.getItem(`nutriologo_info_${emailKey}`);
+          if (savedInfo) {
+            const parsed = JSON.parse(savedInfo);
+            const nutriologoActual = JSON.parse(localStorage.getItem('nutriologo_actual')) || {};
+            const merged = {
+              telefono: nutriologoActual.telefono || parsed.telefono || '',
+              cedula: nutriologoActual.cedula || parsed.cedula || '',
+              ...nutriologoActual
+            };
+            localStorage.setItem('nutriologo_actual', JSON.stringify(merged));
+          }
+
           router.navigate('/dashboard');
         } else {
           const phone = telefonoInput.value.trim();
@@ -221,6 +236,7 @@ export const LoginPage = async () => {
           ]);
           if (!valido) return;
 
+          const emailKey = emailInput.value.trim().toLowerCase();
           await registrarNutriologo({
             nombreCompleto: nombreInput.value,
             email: emailInput.value,
@@ -228,6 +244,12 @@ export const LoginPage = async () => {
             telefono: phone,
             cedula: cedulaVal
           });
+
+          // Guardar teléfono y cédula localmente asociados al correo
+          localStorage.setItem(`nutriologo_info_${emailKey}`, JSON.stringify({
+            telefono: phone,
+            cedula: cedulaVal
+          }));
           
           successMessage.textContent = "Cuenta registrada exitosamente. ¡Ya puedes iniciar sesión!";
           successAlert.classList.remove('hidden');
