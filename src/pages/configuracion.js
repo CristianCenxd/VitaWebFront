@@ -119,22 +119,34 @@ async function renderizarConfiguracion() {
       <div class="detail-section">
         <div class="detail-section-header">
           <h2>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="3"></circle>
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-500 dark:text-yellow-400 transition-colors duration-300">
+              <circle cx="12" cy="12" r="5" class="block dark:hidden"></circle>
+              <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" class="block dark:hidden"></path>
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" class="hidden dark:block"></path>
             </svg>
             Preferencias Visuales
           </h2>
         </div>
-        <div class="detail-section-body space-y-6">
-          <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800">
-            <div>
-              <p class="font-semibold text-slate-900 dark:text-white text-sm">Modo Oscuro</p>
-              <p class="text-xs text-slate-500 dark:text-slate-400">Cambia la interfaz a una paleta de colores oscuros</p>
+        <div class="detail-section-body">
+          <div class="flex items-center justify-between p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-indigo-900/30 dark:to-indigo-900/10 border border-amber-200/60 dark:border-indigo-800/40 rounded-xl transition-all duration-300">
+            <div class="flex items-center gap-4">
+              <div class="w-11 h-11 rounded-xl bg-amber-100 dark:bg-yellow-500/20 flex items-center justify-center flex-shrink-0 transition-colors duration-300">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden stroke-amber-600">
+                  <circle cx="12" cy="12" r="5"></circle>
+                  <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>
+                </svg>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+              </div>
+              <div>
+                <p class="font-semibold text-slate-900 dark:text-white text-sm transition-colors duration-300">Modo Oscuro</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 transition-colors duration-300">Cambia la interfaz a una paleta de colores oscuros</p>
+              </div>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" id="darkModeToggle" class="sr-only peer" ${isDark ? 'checked' : ''}>
-              <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:height-5 after:width-5 after:transition-all dark:border-slate-600 peer-checked:bg-blue-600"></div>
+              <div class="w-11 h-6 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all bg-slate-300 dark:bg-indigo-600 after:border-slate-300 dark:after:border-white peer-focus:outline-none after:border"></div>
             </label>
           </div>
         </div>
@@ -156,9 +168,9 @@ async function renderizarConfiguracion() {
           </h2>
         </div>
         <div class="detail-section-body space-y-4">
-          <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-lg shadow-green-500/20">
+          <div class="flex items-center justify-between p-5 ${conectado ? 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-green-900/10 border-green-200/60 dark:border-green-800/40' : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200/80 dark:border-slate-700/50'} rounded-xl border transition-all duration-300">
+            <div class="flex items-center gap-4">
+              <div class="w-11 h-11 rounded-xl ${conectado ? 'bg-gradient-to-br from-green-400 to-green-600 shadow-lg shadow-green-500/20' : 'bg-slate-200 dark:bg-slate-700'} flex items-center justify-center flex-shrink-0 transition-all duration-300">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                   <line x1="16" y1="2" x2="16" y2="6"></line>
@@ -167,34 +179,27 @@ async function renderizarConfiguracion() {
                 </svg>
               </div>
               <div>
-                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                  </svg>
-                </div>
-                <div>
-                  <p class="font-semibold text-slate-900 dark:text-white text-sm">Sincronización con Google Calendar</p>
-                  <p class="text-xs text-slate-500 dark:text-slate-400">${conectado ? 'Tu calendario está conectado.' : 'Conecta tu Google Calendar para sincronizar las citas.'}</p>
-                </div>
-              </div>
-              <div id="googleCalendarStatus" class="flex-shrink-0">
-                ${conectado ? `
-                  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800/40">
-                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                    Conectado
-                  </span>
-                ` : `
-                  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-                    <span class="w-2 h-2 rounded-full bg-slate-400"></span>
-                    Desconectado
-                  </span>
-                `}
+                <p class="font-semibold text-slate-900 dark:text-white text-sm">Sincronización con Google Calendar</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400">${conectado ? 'Tu calendario está conectado y sincronizado.' : 'Conecta tu Google Calendar para sincronizar las citas.'}</p>
               </div>
             </div>
-            <button id="googleCalendarBtn" class="btn-primary w-full justify-center">
-              ${conectado ? 'Desconectar Google Calendar' : 'Conectar Google Calendar'}
-            </button>
+            <div id="googleCalendarStatus" class="flex-shrink-0">
+              ${conectado ? `
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800/40">
+                  <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                  Conectado
+                </span>
+              ` : `
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                  <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                  Desconectado
+                </span>
+              `}
+            </div>
           </div>
+          <button id="googleCalendarBtn" class="${conectado ? 'btn-secondary' : 'btn-primary'} w-full justify-center">
+            ${conectado ? 'Desconectar Google Calendar' : 'Conectar Google Calendar'}
+          </button>
         </div>
 
         <!-- Cerrar Sesión -->
