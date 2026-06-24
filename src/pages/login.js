@@ -215,9 +215,9 @@ export const LoginPage = async () => {
             const parsed = JSON.parse(savedInfo);
             const nutriologoActual = JSON.parse(localStorage.getItem('nutriologo_actual')) || {};
             const merged = {
+              ...nutriologoActual,
               telefono: nutriologoActual.telefono || parsed.telefono || '',
-              cedula: nutriologoActual.cedula || parsed.cedula || '',
-              ...nutriologoActual
+              cedula: nutriologoActual.cedula || parsed.cedula || ''
             };
             localStorage.setItem('nutriologo_actual', JSON.stringify(merged));
           }

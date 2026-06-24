@@ -109,6 +109,10 @@ export const actualizarNutriologo = async (datos) => {
   });
 };
 
+export const getPerfilNutriologo = async () => {
+  return apiFetch('/api/auth/perfil');
+};
+
 // --- Pacientes ---
 export const getPacientes = async () => {
   const res = await apiFetch('/api/pacientes');

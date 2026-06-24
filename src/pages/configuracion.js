@@ -1,12 +1,39 @@
 import { createLayout } from '../components/layout.js';
-import { getGoogleAuthUrl, getGoogleStatus, actualizarNutriologo, verificarToken, restablecerContrasena } from '../utils/api.js';
+import { getGoogleAuthUrl, getGoogleStatus, actualizarNutriologo, verificarToken, restablecerContrasena, getPerfilNutriologo } from '../utils/api.js';
 import { validators, validarFormulario } from '../utils/validation.js';
 import { router } from '../utils/router.js';
 
 export const ConfiguracionPage = async () => {
   const isDark = localStorage.getItem('theme') === 'dark';
   let googleStatus = null;
-  const nutriologo = JSON.parse(localStorage.getItem('nutriologo_actual')) || {};
+  let nutriologo = JSON.parse(localStorage.getItem('nutriologo_actual')) || {};
+
+  // Intentamos obtener el perfil actualizado del servidor
+  try {
+    const resPerfil = await getPerfilNutriologo();
+    if (resPerfil) {
+      const dataPerfil = resPerfil.data || resPerfil;
+      nutriologo = {
+        ...nutriologo,
+        ...dataPerfil
+      };
+      localStorage.setItem('nutriologo_actual', JSON.stringify(nutriologo));
+    }
+  } catch (e) {
+    console.warn('No se pudo obtener el perfil del servidor:', e);
+  }
+
+  // Fallback si no vienen en el objeto principal (los recuperamos de la info extra guardada localmente)
+  if (nutriologo.email) {
+    const emailKey = nutriologo.email.trim().toLowerCase();
+    const savedInfo = localStorage.getItem(`nutriologo_info_${emailKey}`);
+    if (savedInfo) {
+      const parsed = JSON.parse(savedInfo);
+      nutriologo.telefono = nutriologo.telefono || parsed.telefono || '';
+      nutriologo.cedula = nutriologo.cedula || parsed.cedula || '';
+      localStorage.setItem('nutriologo_actual', JSON.stringify(nutriologo));
+    }
+  }
 
   try {
     googleStatus = await getGoogleStatus();
