@@ -460,7 +460,7 @@ async function renderizarDetalle(contenedor) {
                   <div class="w-2.5 h-2.5 rounded-full ${(c.estado || 'pendiente').toLowerCase() === 'pendiente' ? 'bg-yellow-400' : (c.estado || 'pendiente').toLowerCase() === 'completada' ? 'bg-green-400' : 'bg-red-400'} flex-shrink-0"></div>
                   <p class="font-semibold text-slate-900 dark:text-white text-xs sm:text-sm">${formatDateTime(c.fecha_hora)}</p>
                 </div>
-                <div class="flex items-center justify-between gap-2 pl-5">
+                <div class="flex flex-wrap items-center justify-between gap-y-1.5 gap-x-2 pl-5">
                   <p class="text-xs text-slate-500 dark:text-slate-400">${c.motivo}</p>
                   <span class="badge-status ${getEstadoStyle(c.estado)} text-xs flex-shrink-0">${getEstadoLabel(c.estado)}</span>
                 </div>
