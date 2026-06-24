@@ -1,7 +1,7 @@
 // Variable para alternar entre Localhost y el Host de Producción de la API
-const USAR_LOCALHOST = false;
+const USAR_LOCALHOST = true;
 
-const URL_LOCALHOST = 'http://192.168.1.245:3000';
+const URL_LOCALHOST = 'http://192.168.0.247:3000';
 const URL_PRODUCCION = 'https://vitaweb.onrender.com'; // Reemplazar con el host de producción real de la API
 
 export const API_BASE_URL = USAR_LOCALHOST ? URL_LOCALHOST : URL_PRODUCCION;
