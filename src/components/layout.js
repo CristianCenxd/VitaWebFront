@@ -4,10 +4,10 @@ export const createLayout = (content, currentPage) => {
   return `
     <div class="flex h-screen bg-slate-50">
       <!-- Sidebar backdrop for mobile -->
-      <div id="sidebarBackdrop" class="fixed inset-0 bg-black/50 z-40 hidden" onclick="toggleSidebar()"></div>
+      <div id="sidebarBackdrop" class="fixed inset-0 bg-black/50 z-40 hidden"></div>
 
       <!-- Sidebar Toggle (Mobile) -->
-      <button id="sidebarToggleBtn" onclick="toggleSidebar()" class="sidebar-toggle" aria-label="Toggle sidebar">
+      <button id="sidebarToggleBtn" class="sidebar-toggle" aria-label="Toggle sidebar">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="3" y1="6" x2="21" y2="6"></line>
           <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -83,22 +83,5 @@ export const createLayout = (content, currentPage) => {
       </main>
     </div>
 
-    <script>
-      function toggleSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        const backdrop = document.getElementById('sidebarBackdrop');
-        sidebar.classList.toggle('open');
-        if (backdrop) backdrop.classList.toggle('hidden');
-      }
-
-      document.querySelectorAll('[data-page]').forEach(item => {
-        item.addEventListener('click', (e) => {
-          e.preventDefault();
-          const page = item.getAttribute('data-page');
-          window.location.hash = page;
-          if (window.innerWidth <= 768) toggleSidebar();
-        });
-      });
-    </script>
   `;
 };
