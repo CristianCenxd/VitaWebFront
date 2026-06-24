@@ -49,17 +49,7 @@ async function renderizarLista(contenedor) {
           <p>Administra las consultas y seguimientos de tus pacientes</p>
         </div>
         <div class="flex items-center gap-3">
-          <div id="googleSyncBadge" class="hidden">
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800/40">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="16" y1="2" x2="16" y2="6"></line>
-                <line x1="8" y1="2" x2="8" y2="6"></line>
-                <line x1="3" y1="10" x2="21" y2="10"></line>
-              </svg>
-              Google Calendar
-            </span>
-          </div>
+          
           <button id="crearCitaBtn" class="btn-primary">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -97,15 +87,15 @@ async function renderizarLista(contenedor) {
 
       <!-- Table -->
       <div class="detail-section !p-0">
-        <div class="overflow-x-auto">
-          <table class="table-modern">
+        <div class="overflow-x-auto w-full -mx-4 sm:mx-0 px-4 sm:px-0">
+          <table class="table-modern w-full min-w-[700px]">
             <thead>
               <tr>
-                <th>Paciente</th>
-                <th>Fecha y Hora</th>
-                <th>Motivo</th>
-                <th>Estado</th>
-                <th>Acciones</th>
+                <th class="whitespace-nowrap">Paciente</th>
+                <th class="whitespace-nowrap">Fecha y Hora</th>
+                <th class="whitespace-nowrap">Motivo</th>
+                <th class="whitespace-nowrap">Estado</th>
+                <th class="whitespace-nowrap">Acciones</th>
               </tr>
             </thead>
             <tbody id="tablaCitas">
@@ -199,11 +189,14 @@ async function renderizarLista(contenedor) {
 
 function renderizarFilas(citas, pacientes) {
   return citas.map(cita => {
-    const paciente = pacientes.find(p => p.id_paciente === cita.id_paciente);
+    const paciente = pacientes.find(p => 
+      (p.id_paciente && String(p.id_paciente) === String(cita.id_paciente)) || 
+      (p.id && String(p.id) === String(cita.id_paciente))
+    );
     const estadoNorm = (cita.estado || 'pendiente').toLowerCase();
     return `
       <tr class="hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
-        <td>
+        <td class="whitespace-nowrap">
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-xs shadow-sm">
               ${(paciente?.nombreCompleto || paciente?.nombre || '?').charAt(0).toUpperCase()}
@@ -211,12 +204,12 @@ function renderizarFilas(citas, pacientes) {
             <span class="font-semibold text-slate-900 dark:text-white">${paciente?.nombreCompleto || paciente?.nombre || 'Desconocido'}</span>
           </div>
         </td>
-        <td class="text-slate-600 dark:text-slate-300">${formatDateTime(cita.fecha_hora)}</td>
-        <td class="text-slate-600 dark:text-slate-300">${cita.motivo || '-'}</td>
-        <td>
+        <td class="text-slate-600 dark:text-slate-300 whitespace-nowrap">${formatDateTime(cita.fecha_hora)}</td>
+        <td class="text-slate-600 dark:text-slate-300 whitespace-nowrap">${cita.motivo || '-'}</td>
+        <td class="whitespace-nowrap">
           <span class="badge-status ${getEstadoStyle(estadoNorm)} text-xs">${getEstadoLabel(estadoNorm)}</span>
         </td>
-        <td>
+        <td class="whitespace-nowrap">
           <div class="flex items-center gap-2">
             ${estadoNorm === 'pendiente' ? `
               <button class="action-btn action-btn-complete btn-completar" data-id="${cita.id_cita}">
@@ -325,9 +318,15 @@ async function renderizarFormulario(contenedor) {
               <label class="form-label" for="idPaciente">Paciente *</label>
               <select id="idPaciente" required class="input-field">
                 <option value="">Seleccionar paciente...</option>
-                ${pacientes.map(p => `
-                  <option value="${p.id_paciente}" ${datosIniciales.id_paciente === p.id_paciente ? 'selected' : ''}>${p.nombreCompleto}</option>
-                `).join('')}
+                ${pacientes.map(p => {
+                  const esActivo = (p.estado?.toLowerCase() === 'activo') || p.activo === true;
+                  if (!esActivo && String(datosIniciales.id_paciente) !== String(p.id_paciente || p.id)) {
+                    return '';
+                  }
+                  return `
+                    <option value="${p.id_paciente || p.id}" ${String(datosIniciales.id_paciente) === String(p.id_paciente || p.id) ? 'selected' : ''}>${p.nombreCompleto} ${!esActivo ? ' (Inactivo)' : ''}</option>
+                  `;
+                }).join('')}
               </select>
             </div>
 
@@ -400,7 +399,17 @@ async function renderizarFormulario(contenedor) {
     ]);
     if (!valido) return;
 
-    const selectedPaciente = pacientes.find(p => p.id_paciente === parseInt(idPaciente));
+    const selectedPaciente = pacientes.find(p => 
+      (p.id_paciente && String(p.id_paciente) === String(idPaciente)) || 
+      (p.id && String(p.id) === String(idPaciente))
+    );
+
+    const esActivo = (selectedPaciente?.estado?.toLowerCase() === 'activo') || selectedPaciente?.activo === true;
+    if (document.getElementById('estado').value?.toLowerCase() === 'pendiente' && !esActivo) {
+      alert('No puedes programar o guardar una cita pendiente para un paciente inactivo.');
+      return;
+    }
+
     const datos = {
       id_paciente: parseInt(idPaciente),
       fecha_hora: new Date(fechaHora).toISOString(),
@@ -429,7 +438,10 @@ async function renderizarSeguimiento(contenedor) {
     getPacientes().catch(() => []),
     getProgresoPaciente(citaEnEdicion.id_paciente).catch(() => [])
   ]);
-  const paciente = pacientes.find(p => p.id_paciente === citaEnEdicion.id_paciente);
+  const paciente = pacientes.find(p => 
+    (p.id_paciente && String(p.id_paciente) === String(citaEnEdicion.id_paciente)) || 
+    (p.id && String(p.id) === String(citaEnEdicion.id_paciente))
+  );
   const estaturaPaciente = paciente?.estatura_cm || paciente?.estatura || paciente?.height;
   const ultimoProgreso = progresoList.length > 0 
     ? [...progresoList].sort((a, b) => new Date(b.fecha_revision) - new Date(a.fecha_revision))[0] 

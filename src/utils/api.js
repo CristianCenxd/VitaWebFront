@@ -112,25 +112,44 @@ export const actualizarNutriologo = async (datos) => {
 // --- Pacientes ---
 export const getPacientes = async () => {
   const res = await apiFetch('/api/pacientes');
-  return res && res.data ? res.data : (Array.isArray(res) ? res : []);
+  const lista = res && res.data ? res.data : (Array.isArray(res) ? res : []);
+  return lista.map(p => ({
+    ...p,
+    id_paciente: p.id_paciente || p.id
+  }));
 };
 
 export const getPaciente = async (id) => {
-  return apiFetch(`/api/pacientes/${id}`);
+  const p = await apiFetch(`/api/pacientes/${id}`);
+  if (p) {
+    const data = p.data || p;
+    data.id_paciente = data.id_paciente || data.id;
+  }
+  return p;
 };
 
 export const crearPaciente = async (datos) => {
-  return apiFetch('/api/pacientes', {
+  const p = await apiFetch('/api/pacientes', {
     method: 'POST',
     body: JSON.stringify(datos)
   });
+  if (p) {
+    const data = p.data || p;
+    data.id_paciente = data.id_paciente || data.id;
+  }
+  return p;
 };
 
 export const actualizarPaciente = async (id, datos) => {
-  return apiFetch(`/api/pacientes/${id}`, {
+  const p = await apiFetch(`/api/pacientes/${id}`, {
     method: 'PUT',
     body: JSON.stringify(datos)
   });
+  if (p) {
+    const data = p.data || p;
+    data.id_paciente = data.id_paciente || data.id;
+  }
+  return p;
 };
 
 export const eliminarPaciente = async (id) => {
@@ -142,25 +161,44 @@ export const eliminarPaciente = async (id) => {
 // --- Citas ---
 export const getCitas = async () => {
   const res = await apiFetch('/api/citas/agenda');
-  return res && res.data ? res.data : (Array.isArray(res) ? res : []);
+  const lista = res && res.data ? res.data : (Array.isArray(res) ? res : []);
+  return lista.map(c => ({
+    ...c,
+    id_cita: c.id_cita || c.id
+  }));
 };
 
 export const getCita = async (id) => {
-  return apiFetch(`/api/citas/${id}`);
+  const c = await apiFetch(`/api/citas/${id}`);
+  if (c) {
+    const data = c.data || c;
+    data.id_cita = data.id_cita || data.id;
+  }
+  return c;
 };
 
 export const crearCita = async (datos) => {
-  return apiFetch('/api/citas', {
+  const c = await apiFetch('/api/citas', {
     method: 'POST',
     body: JSON.stringify(datos)
   });
+  if (c) {
+    const data = c.data || c;
+    data.id_cita = data.id_cita || data.id;
+  }
+  return c;
 };
 
 export const actualizarCita = async (id, datos) => {
-  return apiFetch(`/api/citas/${id}`, {
+  const c = await apiFetch(`/api/citas/${id}`, {
     method: 'PUT',
     body: JSON.stringify(datos)
   });
+  if (c) {
+    const data = c.data || c;
+    data.id_cita = data.id_cita || data.id;
+  }
+  return c;
 };
 
 export const completarCita = async (id) => {

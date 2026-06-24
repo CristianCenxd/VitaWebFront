@@ -287,6 +287,18 @@ function renderizarFormulario(contenedor) {
     ]);
     if (!valido) return;
 
+    if (modo === 'editar' && document.getElementById('estado').value === 'inactivo') {
+      const listCitas = await getCitas().catch(() => []);
+      const tieneCitasPendientes = listCitas.some(c => 
+        String(c.id_paciente) === String(pacienteEnEdicion.id_paciente) && 
+        c.estado?.toLowerCase() === 'pendiente'
+      );
+      if (tieneCitasPendientes) {
+        alert('No puedes inactivar a este paciente porque tiene citas pendientes. Debes completar o cancelar las citas pendientes primero.');
+        return;
+      }
+    }
+
     const datos = {
       nombreCompleto: nombre,
       email: email,
