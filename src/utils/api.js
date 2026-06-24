@@ -10,7 +10,6 @@ export const API_BASE_URL = USAR_LOCALHOST ? URL_LOCALHOST : URL_PRODUCCION;
 const getHeaders = () => {
   const token = localStorage.getItem('token');
   return {
-    'Content-Type': 'application/json',
     ...(token ? { 'Authorization': `Bearer ${token}` } : {})
   };
 };
@@ -18,12 +17,17 @@ const getHeaders = () => {
 // Helper genérico para peticiones HTTP
 async function apiFetch(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
+  const headers = {
+    ...getHeaders(),
+    ...options.headers
+  };
+  // Only set Content-Type for requests that have a body
+  if (options.body) {
+    headers['Content-Type'] = 'application/json';
+  }
   const config = {
     ...options,
-    headers: {
-      ...getHeaders(),
-      ...options.headers
-    }
+    headers
   };
 
   const response = await fetch(url, config);
