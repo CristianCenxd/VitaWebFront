@@ -28,8 +28,20 @@ export const CitasPage = async () => {
           <p>Administra las consultas y seguimientos de tus pacientes</p>
         </div>
       </div>
-      <div class="text-center py-16">
-        <p class="text-slate-500 font-medium">Cargando citas...</p>
+      <div class="animate-fade-in">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <div class="skeleton h-8 w-32 rounded-lg mb-2"></div>
+            <div class="skeleton h-5 w-56 rounded-lg"></div>
+          </div>
+          <div class="skeleton h-10 w-32 rounded-lg"></div>
+        </div>
+        <div class="flex gap-2 mb-6">
+          <div class="skeleton h-9 w-24 rounded-lg"></div>
+          <div class="skeleton h-9 w-24 rounded-lg"></div>
+          <div class="skeleton h-9 w-24 rounded-lg"></div>
+        </div>
+        <div class="skeleton h-64 rounded-xl"></div>
       </div>
     </div>
   `;

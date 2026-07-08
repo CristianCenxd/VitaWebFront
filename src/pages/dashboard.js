@@ -18,9 +18,16 @@ export const DashboardPage = async () => {
         <h1>Dashboard</h1>
         <p>Bienvenido a tu panel de control de nutrición</p>
       </div>
-      <div class="text-center py-16">
-        <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-        <p class="text-slate-500 font-medium">Cargando dashboard...</p>
+      <div class="space-y-8 animate-fade-in">
+        <div class="skeleton h-8 w-48 rounded-lg mb-2"></div>
+        <div class="skeleton h-5 w-72 rounded-lg mb-8"></div>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          <div class="skeleton h-32 rounded-xl"></div>
+          <div class="skeleton h-32 rounded-xl"></div>
+          <div class="skeleton h-32 rounded-xl"></div>
+          <div class="skeleton h-32 rounded-xl"></div>
+        </div>
+        <div class="skeleton h-64 rounded-xl"></div>
       </div>
     </div>
   `;

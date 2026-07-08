@@ -10,9 +10,14 @@ export const ConfiguracionPage = async () => {
         <h1>Configuración</h1>
         <p>Ajusta las preferencias de la aplicación</p>
       </div>
-      <div class="text-center py-16">
-        <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-        <p class="text-slate-500 font-medium">Cargando configuración...</p>
+      <div class="animate-fade-in">
+        <div class="skeleton h-8 w-48 rounded-lg mb-2"></div>
+        <div class="skeleton h-5 w-64 rounded-lg mb-8"></div>
+        <div class="space-y-6">
+          <div class="skeleton h-40 rounded-xl"></div>
+          <div class="skeleton h-28 rounded-xl"></div>
+          <div class="skeleton h-40 rounded-xl"></div>
+        </div>
       </div>
     </div>
   `;
@@ -201,9 +206,10 @@ async function renderizarConfiguracion() {
             ${conectado ? 'Desconectar Google Calendar' : 'Conectar Google Calendar'}
           </button>
         </div>
+      </div>
 
-        <!-- Cerrar Sesión -->
-        <div class="detail-section border-red-200 dark:border-red-900/40">
+      <!-- Cerrar Sesión -->
+      <div class="detail-section border-red-200 dark:border-red-900/40">
           <div class="detail-section-header">
             <h2 class="text-red-600 dark:text-red-400">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -225,7 +231,6 @@ async function renderizarConfiguracion() {
               Cerrar Sesión
             </button>
           </div>
-        </div>
       </div>
     </div>
   `;
@@ -253,7 +258,7 @@ async function renderizarConfiguracion() {
             </div>
             <div class="form-group">
               <label class="form-label" for="editCedula">Cédula Profesional</label>
-              <input type="text" id="editCedula" value="${n.cedula || ''}" maxlength="8" class="input-field" placeholder="7 u 8 dígitos" readonly style="background:#f1f5f9;cursor:not-allowed;opacity:0.7" title="La cédula no se puede modificar" />
+              <input type="text" id="editCedula" value="${n.cedula || ''}" maxlength="8" class="input-field input-readonly" placeholder="7 u 8 dígitos" readonly title="La cédula no se puede modificar" />
             </div>
           </div>
           <div class="flex gap-3 pt-2">

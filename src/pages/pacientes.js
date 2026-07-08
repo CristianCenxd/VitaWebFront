@@ -31,15 +31,19 @@ export const PacientesPage = async () => {
 
   const content = `
     <div id="contenidoPacientes" class="animate-slide-in space-y-6">
-      <div class="page-header flex items-center justify-between">
-        <div>
-          <h1>Pacientes</h1>
-          <p>Gestión de pacientes registrados en tu consulta</p>
+      <div class="animate-fade-in">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <div class="skeleton h-8 w-44 rounded-lg mb-2"></div>
+            <div class="skeleton h-5 w-64 rounded-lg"></div>
+          </div>
+          <div class="skeleton h-10 w-36 rounded-lg"></div>
         </div>
-      </div>
-      <div class="text-center py-16">
-        <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-        <p class="text-slate-500 font-medium">Cargando pacientes...</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div class="skeleton h-52 rounded-xl"></div>
+          <div class="skeleton h-52 rounded-xl"></div>
+          <div class="skeleton h-52 rounded-xl"></div>
+        </div>
       </div>
     </div>
   `;
@@ -64,7 +68,7 @@ async function renderizarVista() {
 }
 
 async function renderizarLista(contenedor) {
-  if (!contenedor.querySelector('.animate-spin') && !contenedor.querySelector('.patient-card')) {
+  if (!contenedor.querySelector('.skeleton') && !contenedor.querySelector('.patient-card')) {
     contenedor.innerHTML = `
       <div class="page-header flex items-center justify-between">
         <div>
@@ -72,9 +76,19 @@ async function renderizarLista(contenedor) {
           <p>Gestión de pacientes registrados en tu consulta</p>
         </div>
       </div>
-      <div class="text-center py-16">
-        <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-        <p class="text-slate-500 font-medium">Cargando pacientes...</p>
+      <div>
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <div class="skeleton h-8 w-44 rounded-lg mb-2"></div>
+            <div class="skeleton h-5 w-64 rounded-lg"></div>
+          </div>
+          <div class="skeleton h-10 w-36 rounded-lg"></div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div class="skeleton h-52 rounded-xl"></div>
+          <div class="skeleton h-52 rounded-xl"></div>
+          <div class="skeleton h-52 rounded-xl"></div>
+        </div>
       </div>
     `;
   }
