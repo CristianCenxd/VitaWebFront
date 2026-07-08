@@ -253,7 +253,7 @@ async function renderizarConfiguracion() {
             </div>
             <div class="form-group">
               <label class="form-label" for="editCedula">Cédula Profesional</label>
-              <input type="text" id="editCedula" value="${n.cedula || ''}" maxlength="8" class="input-field" placeholder="7 u 8 dígitos" />
+              <input type="text" id="editCedula" value="${n.cedula || ''}" maxlength="8" class="input-field" placeholder="7 u 8 dígitos" readonly style="background:#f1f5f9;cursor:not-allowed;opacity:0.7" title="La cédula no se puede modificar" />
             </div>
           </div>
           <div class="flex gap-3 pt-2">
@@ -275,12 +275,7 @@ async function renderizarConfiguracion() {
         });
       }
 
-      const cedulaInput = document.getElementById('editCedula');
-      if (cedulaInput) {
-        cedulaInput.addEventListener('input', (e) => {
-          e.target.value = e.target.value.replace(/\D/g, '');
-        });
-      }
+
 
       document.getElementById('formPerfil').onsubmit = async (e) => {
         e.preventDefault();
@@ -292,8 +287,7 @@ async function renderizarConfiguracion() {
         const valido = validarFormulario([
           { campo: 'editNombre', nombre: 'Nombre', valor: nombre, validacion: validators.soloLetras },
           { campo: 'editEmail', nombre: 'Correo', valor: email, validacion: validators.email },
-          { campo: 'editTelefono', nombre: 'Teléfono', valor: telefono, validacion: validators.telefono },
-          { campo: 'editCedula', nombre: 'Cédula', valor: cedula, validacion: validators.cedula }
+          { campo: 'editTelefono', nombre: 'Teléfono', valor: telefono, validacion: validators.telefono }
         ]);
         if (!valido) return;
 
